@@ -2,7 +2,7 @@
 import { isEnterprise, planRequiredEnterprise, type PlanType } from '@/lib/plan'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { createSupabaseRouteClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 type PlanType = 'free' | 'pro' | 'enterprise'
 const planRank: Record<PlanType, number> = { free: 0, pro: 1, enterprise: 2 }
@@ -21,7 +21,7 @@ function getSupabaseAdmin() {
 
 // Admin session + account bilgisi (owner/member) + plan_type
 async function requireAdminSession() {
-  const supa = await createSupabaseRouteClient()
+  const supa = await createSupabaseServerClient()
   const { data: auth, error: authErr } = await supa.auth.getUser()
 
   if (authErr) return { ok: false as const, error: authErr.message }
@@ -108,7 +108,7 @@ export async function GET(req: Request) {
   }
 
   // 3) account'a ait page_id listesini çek (RLS ile güvenli)
-  const supa = await createSupabaseRouteClient()
+  const supa = await createSupabaseServerClient()
 
   const { data: pages, error: pagesErr } = await supa
     .from('public_pages')

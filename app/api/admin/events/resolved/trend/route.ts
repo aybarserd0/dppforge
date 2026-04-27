@@ -1,7 +1,7 @@
 // app/api/admin/events/resolved/trend/route.ts
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { createSupabaseRouteClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { isEnterprise, planRequiredEnterprise, type PlanType } from '@/lib/plan'
 
 export const dynamic = 'force-dynamic'
@@ -19,7 +19,7 @@ function getServiceSupabase() {
 
 // Admin session + account + plan_type
 async function requireAdminSession() {
-  const supa = await createSupabaseRouteClient()
+  const supa = await createSupabaseServerClient()
   const { data: auth, error: authErr } = await supa.auth.getUser()
 
   if (authErr) return { ok: false as const, error: authErr.message }
