@@ -321,7 +321,14 @@ export default async function AdminPageDetail({
 
   const backToAdminHref = '/admin'
   const appUrl = getAppUrl()
-  const publicUrl = new URL(`/p/${page.slug}`, appUrl).toString()
+  function getAppUrl() {
+  return (
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '') ||
+    'http://localhost:3000'
+  ).replace(/\/+$/, '')
+}
   const qrImageUrl =
     'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' +
     encodeURIComponent(publicUrl)
