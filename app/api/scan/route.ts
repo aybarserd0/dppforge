@@ -167,7 +167,7 @@ async function maybeCreateAlarmAndSendMail(params: {
   }
 
   const plan = await getAccountPlan(supabase, pageId)
-  if (!canSendEmail(plan)) {
+  if (!canSendEmail(plan.toUpperCase() as 'FREE' | 'PRO' | 'ENTERPRISE')) {
     console.log('[plan] suspicious email blocked (free plan)')
     return
   }
@@ -273,7 +273,7 @@ async function maybeSendCounterfeitMail(params: {
   }
 
   const plan = await getAccountPlan(supabase, pageId)
-  if (!canSendEmail(plan)) {
+  if (!canSendEmail(plan.toUpperCase() as 'FREE' | 'PRO' | 'ENTERPRISE')) {
     console.log('[plan] counterfeit email blocked (free plan)')
     return
   }
