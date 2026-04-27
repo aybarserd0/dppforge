@@ -2,7 +2,12 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 
-type ReviewState = 'all' | 'open' | 'in_review' | 'approved' | 'rejected'
+type ReviewState =
+  | 'all'
+  | 'open'
+  | 'in_review'
+  | 'resolved_ok'
+  | 'confirmed_fake'
 
 export default function ReviewSelect({ value }: { value: ReviewState }) {
   const router = useRouter()
@@ -34,8 +39,8 @@ export default function ReviewSelect({ value }: { value: ReviewState }) {
       <option value="all">İnceleme: Hepsi</option>
       <option value="open">İnceleme: Açık</option>
       <option value="in_review">İnceleme: İncelemede</option>
-      <option value="approved">İnceleme: Onaylı</option>
-      <option value="rejected">İnceleme: Reddedildi</option>
+      <option value="resolved_ok">İnceleme: Temiz</option>
+      <option value="confirmed_fake">İnceleme: Sahte</option>
     </select>
   )
 }
