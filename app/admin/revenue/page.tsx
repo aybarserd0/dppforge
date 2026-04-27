@@ -66,7 +66,17 @@ function metricCard(
       }}
     >
       <div style={{ fontSize: 12, opacity: 0.8 }}>{title}</div>
-      <div style={{ marginTop: 8, fontSize: 28, fontWeight: 900 }}>{value}</div>
+      <div
+  style={{
+    marginTop: 8,
+    fontSize: 26,
+    fontWeight: 900,
+    lineHeight: 1.1,
+    wordBreak: 'break-word',
+  }}
+>
+  {value}
+</div>
     </div>
   )
 }
@@ -247,7 +257,7 @@ export default async function RevenuePage() {
   return (
     <div
       style={{
-        padding: 40,
+        padding: '24px 16px',
         background: '#0b0f17',
         minHeight: '100vh',
         color: '#e6e6e6',
@@ -316,7 +326,7 @@ export default async function RevenuePage() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(5, minmax(0,1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
           gap: 12,
           marginBottom: 18,
         }}
