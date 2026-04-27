@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 
-type ReviewState = 'open' | 'reviewing' | 'approved' | 'rejected'
+type ReviewState = 'open' | 'in_review' | 'resolved_ok' | 'confirmed_fake'
 
 
 type ReviewResponse = {
