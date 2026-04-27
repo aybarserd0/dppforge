@@ -144,7 +144,11 @@ export async function POST(req: Request) {
       </div>
     `
 
-    const mailResult = await sendAlertMail(subject, text, html)
+    const mailResult = await sendAlertMail({
+  subject,
+  text,
+  html,
+})
 
     return NextResponse.json({
       ok: true,
