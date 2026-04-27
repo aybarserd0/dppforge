@@ -3,7 +3,7 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 
-type ReviewState = 'open' | 'in_review' | 'approved' | 'rejected'
+type ReviewState = 'open' | 'in_review' | 'resolved_ok' | 'confirmed_fake'
 
 type Counterfeit = {
   id: string
@@ -91,7 +91,7 @@ function reviewBadgeNode(reviewState: ReviewState) {
     )
   }
 
-  if (reviewState === 'approved') {
+  if (reviewState === 'resolved_ok') {
     return (
       <span className={pill('border-emerald-400/30 bg-emerald-500/10 text-emerald-200')}>
         Onaylı
@@ -99,7 +99,7 @@ function reviewBadgeNode(reviewState: ReviewState) {
     )
   }
 
-  if (reviewState === 'rejected') {
+  if (reviewState === 'confirmed_fake') {
     return (
       <span className={pill('border-red-400/30 bg-red-500/10 text-red-200')}>
         Reddedildi
@@ -399,7 +399,7 @@ export default function AdminRow({
           <button
             onClick={(e) => {
               e.stopPropagation()
-              quickSetReview('approved')
+              quickSetReview('resolved_ok')
             }}
             disabled={saving || deleting}
             className={[
@@ -415,7 +415,7 @@ export default function AdminRow({
           <button
             onClick={(e) => {
               e.stopPropagation()
-              quickSetReview('rejected')
+              quickSetReview('confirmed_fake')
             }}
             disabled={saving || deleting}
             className={[
