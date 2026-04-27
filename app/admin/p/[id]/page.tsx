@@ -320,6 +320,8 @@ export default async function AdminPageDetail({
     .slice(0, 8)
 
   const backToAdminHref = '/admin'
+  const publicUrl = `${getAppUrl()}/p/${page.slug}`
+  
   const appUrl = getAppUrl()
   function getAppUrl() {
   return (
