@@ -26,3 +26,4 @@ export async function createSupabaseServerClient() {
     }
   )
 }
+export { createSupabaseServerClient as createSupabaseRouteClient }
