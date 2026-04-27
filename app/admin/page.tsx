@@ -26,7 +26,25 @@ function getSupabaseAdmin() {
   return createClient(url, serviceKey, { auth: { persistSession: false } })
 }
 
-type ReviewState = 'open' | 'in_review' | 'approved' | 'rejected'
+type ReviewState = 'open' | 'in_review' | 'resolved_ok' | 'confirmed_fake'
+
+function normalizeReviewState(value: string | null | undefined): ReviewState {
+  if (
+    value === 'open' ||
+    value === 'in_review' ||
+    value === 'resolved_ok' ||
+    value === 'confirmed_fake'
+  ) {
+    return value
+  }
+
+  if (value === 'approved') return 'resolved_ok'
+  if (value === 'rejected') return 'confirmed_fake'
+  if (value === 'reviewing') return 'in_review'
+
+  return 'open'
+}
+
 type AccountPlan = PlanType
 
 type PageRow = {
@@ -1502,7 +1520,7 @@ export default async function AdminPage({
                 product={prod ?? null}
                 scansCount={scansTotal}
                 isSuspicious={isSuspicious}
-                reviewState={p.review_state}
+                reviewState={normalizeReviewState(p.review_state)}
                 scans24h={scans24h}
                 uniqueIps24h={uniqueIps24h}
                 uniqueCountries24h={uniqueCountries24h}
