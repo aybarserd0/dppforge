@@ -316,7 +316,7 @@ export default async function DashboardPage() {
   })
 
   rows.sort((a, b) => {
-    const weight = (status: 'counterfeit' | 'suspicious' | 'clean') =>
+    const weight = (status: string) =>
       status === 'counterfeit' ? 0 : status === 'suspicious' ? 1 : 2
 
     const diff = weight(a.status) - weight(b.status)
