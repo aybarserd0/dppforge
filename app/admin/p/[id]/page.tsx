@@ -12,14 +12,14 @@ function getSupabaseAdmin() {
   return createClient(url, serviceKey, { auth: { persistSession: false } })
 }
 
-type ReviewState = 'open' | 'reviewing' | 'approved' | 'rejected'
+type ReviewState = 'open' | 'in_review' | 'resolved_ok' | 'confirmed_fake'
 
 function normalizeReviewState(value: string | null | undefined): ReviewState {
   if (
     value === 'open' ||
-    value === 'reviewing' ||
-    value === 'approved' ||
-    value === 'rejected'
+    value === 'in_review' ||
+    value === 'resolved_ok' ||
+    value === 'confirmed_fake'
   ) {
     return value
   }
