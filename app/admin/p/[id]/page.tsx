@@ -12,6 +12,21 @@ function getSupabaseAdmin() {
   return createClient(url, serviceKey, { auth: { persistSession: false } })
 }
 
+type ReviewState = 'open' | 'reviewing' | 'approved' | 'rejected'
+
+function normalizeReviewState(value: string | null | undefined): ReviewState {
+  if (
+    value === 'open' ||
+    value === 'reviewing' ||
+    value === 'approved' ||
+    value === 'rejected'
+  ) {
+    return value
+  }
+
+  return 'open'
+}
+
 type ScanRow = {
   id: string
   page_id: string
@@ -213,8 +228,6 @@ export default async function AdminPageDetail({
 
   const timelineScans = (timelineRaw ?? []) as ScanRow[]
 
-  let counterfeitAlarm: CounterfeitAlarmRow | null = null
-
   const { data: alarmData } = await supabase
     .from('dpp_alarms')
     .select('alarm_type, risk_score, risk_level, reasons, created_at, resolved')
@@ -225,7 +238,7 @@ export default async function AdminPageDetail({
     .limit(1)
     .maybeSingle()
 
-  counterfeitAlarm = (alarmData ?? null) as CounterfeitAlarmRow | null
+  const counterfeitAlarm = (alarmData ?? null) as CounterfeitAlarmRow | null
 
   const { data: productRaw } = await supabase
     .from('products')
@@ -494,7 +507,7 @@ export default async function AdminPageDetail({
       <div style={{ marginTop: 16 }}>
         <ReviewPanel
           pageId={page.id}
-          initialState={page.review_state ?? 'open'}
+          initialState={normalizeReviewState(page.review_state)}
           initialNote={page.review_note ?? null}
           initialReviewedAt={page.reviewed_at ?? null}
           initialReviewedBy={page.reviewed_by ?? null}
