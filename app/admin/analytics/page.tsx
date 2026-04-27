@@ -69,6 +69,8 @@ function cardStyle() {
     borderRadius: 18,
     padding: 18,
     boxShadow: '0 10px 30px rgba(0,0,0,0.18)',
+
+     minHeight: 120,
   }
 }
 
@@ -291,7 +293,7 @@ export default async function AdminAnalyticsPage() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 2fr) minmax(280px, 1fr)',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
           gap: 16,
           alignItems: 'start',
         }}
@@ -307,7 +309,14 @@ export default async function AdminAnalyticsPage() {
               flexWrap: 'wrap',
             }}
           >
-            <h2 style={{ margin: 0, fontSize: 28 }}>En Riskli Ürünler</h2>
+            <h2
+  style={{
+    margin: 0,
+    fontSize: 22,
+    lineHeight: 1.2,
+    wordBreak: 'break-word',
+  }}
+>En Riskli Ürünler</h2>
             <span style={{ opacity: 0.6, fontSize: 13 }}>Son 24 saatlik veri</span>
           </div>
 
@@ -440,7 +449,14 @@ export default async function AdminAnalyticsPage() {
               flexWrap: 'wrap',
             }}
           >
-            <h2 style={{ margin: 0, fontSize: 28 }}>Ülke Dağılımı</h2>
+            <h2
+  style={{
+    margin: 0,
+    fontSize: 22,
+    lineHeight: 1.2,
+    wordBreak: 'break-word',
+  }}
+>Ülke Dağılımı</h2>
             <span style={{ opacity: 0.6, fontSize: 13 }}>24 saat</span>
           </div>
 
