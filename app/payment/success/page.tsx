@@ -1,8 +1,7 @@
 'use client'
-export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 type VerifyResponse = {
@@ -216,7 +215,7 @@ function statusMeta(status: 'paid' | 'pending' | 'failed' | 'error') {
   }
 }
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const searchParams = useSearchParams()
   const [mounted, setMounted] = useState(false)
   const [state, setState] = useState<VerifyState>({
@@ -482,9 +481,7 @@ export default function PaymentSuccessPage() {
             }}
           >
             <div style={{ fontWeight: 900, marginBottom: 6 }}>Hata</div>
-            <div style={{ fontSize: 14, lineHeight: 1.6 }}>
-              {state.error}
-            </div>
+            <div style={{ fontSize: 14, lineHeight: 1.6 }}>{state.error}</div>
           </div>
         )}
 
@@ -531,5 +528,13 @@ export default function PaymentSuccessPage() {
         ) : null}
       </div>
     </main>
+  )
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={<main style={pageStyle()}>Ödeme sonucu yükleniyor...</main>}>
+      <PaymentSuccessContent />
+    </Suspense>
   )
 }
