@@ -655,7 +655,7 @@ export default async function PublicDppPage({
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: 24,
+          padding: '16px 12px',
           fontFamily: 'system-ui',
         }}
       >
@@ -887,7 +887,7 @@ export default async function PublicDppPage({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1.2fr 0.8fr',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
             gap: 16,
             alignItems: 'start',
           }}
@@ -898,7 +898,7 @@ export default async function PublicDppPage({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: '160px 1fr',
+                gridTemplateColumns: 'minmax(120px, 160px) 1fr',
                 gap: 10,
                 fontSize: 14,
                 lineHeight: 1.7,
@@ -970,10 +970,13 @@ export default async function PublicDppPage({
               )}
 
               <img
-                src={qrDataUrl}
-                alt="DPP QR"
-                style={{ width: 200, height: 200, margin: '0 auto' }}
-              />
+              src={qrDataUrl}
+              style={{
+              width: '100%',
+              maxWidth: 200,
+              height: 'auto',
+              }}
+            />
             </div>
 
             <div
@@ -1009,7 +1012,7 @@ export default async function PublicDppPage({
           style={{
             marginTop: 16,
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, minmax(0,1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
             gap: 12,
           }}
         >

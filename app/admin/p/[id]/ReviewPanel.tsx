@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react'
 
-type ReviewState = 'open' | 'in_review' | 'resolved_ok' | 'confirmed_fake'
+type ReviewState = 'open' | 'reviewing' | 'approved' | 'rejected'
+
 
 type ReviewResponse = {
   ok?: boolean
