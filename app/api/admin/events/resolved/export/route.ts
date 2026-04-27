@@ -1,5 +1,5 @@
 // app/api/admin/events/resolved/export/route.ts
-import { isEnterprise, planRequiredEnterprise, type PlanType } from '@/lib/plan'
+import { isEnterprise, planRequiredEnterprise } from '@/lib/plan'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
