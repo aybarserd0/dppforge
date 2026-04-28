@@ -11,7 +11,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('dpp_scans')
-    .select('created_at, country, ip_hash, page_id')
+    .select('scanned_at, country, ip_hash, page_id')
     .order('created_at', { ascending: false })
     .limit(500)
 
@@ -25,7 +25,7 @@ export async function GET() {
   const rows = data
     .map(
       (row) =>
-        `${row.created_at},${row.country ?? ''},${row.ip_hash ?? ''},${row.page_id}`
+        `${row.scanned_at},${row.country ?? ''},${row.ip_hash ?? ''},${row.page_id}`
     )
     .join('\n')
 
