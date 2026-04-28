@@ -916,13 +916,28 @@ export default async function AdminPage({
           <div style={{ marginTop: 10 }}>{planBadge(currentPlan)}</div>
         </div>
         <div
-          style={{
-            display: 'flex',
-            gap: 10,
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        />
+           style={{
+           display: 'flex',
+           gap: 10,
+           alignItems: 'center',
+           flexWrap: 'wrap',
+      }}
+    >
+  <a
+    href="/api/export/csv"
+    style={{
+      padding: '10px 16px',
+      borderRadius: 12,
+      background: 'rgba(34,211,238,0.15)',
+      border: '1px solid rgba(34,211,238,0.4)',
+      color: '#cffafe',
+      fontWeight: 700,
+      textDecoration: 'none',
+    }}
+  >
+    📥 CSV indir
+  </a>
+</div>
       </div>
 
       {planSummaryCard({
