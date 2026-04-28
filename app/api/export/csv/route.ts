@@ -12,7 +12,7 @@ export async function GET() {
   const { data, error } = await supabase
     .from('dpp_scans')
     .select('scanned_at, country, ip_hash, page_id')
-    .order('created_at', { ascending: false })
+    .order('scanned_at', { ascending: false })
     .limit(500)
 
   if (error) {
