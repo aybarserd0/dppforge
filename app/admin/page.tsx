@@ -27,8 +27,25 @@ function getSupabaseAdmin() {
 }
 
 type ReviewState = 'open' | 'in_review' | 'resolved_ok' | 'confirmed_fake'
+
+function normalizeReviewState(value: string | null | undefined): ReviewState {
+  if (
+    value === 'open' ||
+    value === 'in_review' ||
+    value === 'resolved_ok' ||
+    value === 'confirmed_fake'
+  ) {
+    return value
+  }
+
+  if (value === 'approved') return 'resolved_ok'
+  if (value === 'rejected') return 'confirmed_fake'
+  if (value === 'reviewing') return 'in_review'
+
+  return 'open'
+}
+
 type AccountPlan = PlanType
-type Severity = 'low' | 'medium' | 'high'
 
 type PageRow = {
   id: string
@@ -55,6 +72,8 @@ type ScanSummaryRow = {
   is_suspicious: boolean
 }
 
+type Severity = 'low' | 'medium' | 'high'
+
 type EventRow = {
   id: string
   page_id: string
@@ -77,23 +96,6 @@ type CounterfeitAlarmRow = {
   reasons: string[] | null
   created_at: string | null
   resolved: boolean | null
-}
-
-function normalizeReviewState(value: string | null | undefined): ReviewState {
-  if (
-    value === 'open' ||
-    value === 'in_review' ||
-    value === 'resolved_ok' ||
-    value === 'confirmed_fake'
-  ) {
-    return value
-  }
-
-  if (value === 'approved') return 'resolved_ok'
-  if (value === 'rejected') return 'confirmed_fake'
-  if (value === 'reviewing') return 'in_review'
-
-  return 'open'
 }
 
 function since(iso?: string | null) {
@@ -160,24 +162,6 @@ function pillStyle(bg: string, border: string, color: string) {
   }
 }
 
-function buttonClass(
-  variant: 'default' | 'primary' | 'success' | 'danger' = 'default'
-) {
-  if (variant === 'primary') {
-    return 'inline-flex h-11 items-center justify-center rounded-full bg-cyan-400 px-5 text-sm font-extrabold text-[#08111f] transition hover:bg-cyan-300'
-  }
-
-  if (variant === 'success') {
-    return 'inline-flex h-11 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-400/15 px-5 text-sm font-extrabold text-emerald-100 transition hover:bg-emerald-400/20'
-  }
-
-  if (variant === 'danger') {
-    return 'inline-flex h-11 items-center justify-center rounded-full border border-red-400/30 bg-red-400/15 px-5 text-sm font-extrabold text-red-100 transition hover:bg-red-400/20'
-  }
-
-  return 'inline-flex h-11 items-center justify-center rounded-full border border-white/15 bg-white/[0.04] px-5 text-sm font-extrabold text-white transition hover:bg-white/[0.07]'
-}
-
 function headerButtonStyle(
   variant: 'default' | 'primary' | 'success' = 'default'
 ) {
@@ -187,12 +171,12 @@ function headerButtonStyle(
       alignItems: 'center',
       justifyContent: 'center',
       padding: '10px 12px',
-      borderRadius: 999,
-      border: '1px solid rgba(34,211,238,0.35)',
-      background: 'rgba(34,211,238,0.16)',
-      color: '#cffafe',
+      borderRadius: 12,
+      border: '1px solid rgba(59,130,246,0.35)',
+      background: 'rgba(59,130,246,0.18)',
+      color: '#dbeafe',
       textDecoration: 'none',
-      fontWeight: 900 as const,
+      fontWeight: 800 as const,
     }
   }
 
@@ -202,12 +186,12 @@ function headerButtonStyle(
       alignItems: 'center',
       justifyContent: 'center',
       padding: '10px 12px',
-      borderRadius: 999,
+      borderRadius: 12,
       border: '1px solid rgba(34,197,94,0.35)',
       background: 'rgba(34,197,94,0.16)',
       color: '#bbf7d0',
       textDecoration: 'none',
-      fontWeight: 900 as const,
+      fontWeight: 800 as const,
     }
   }
 
@@ -216,12 +200,12 @@ function headerButtonStyle(
     alignItems: 'center',
     justifyContent: 'center',
     padding: '10px 12px',
-    borderRadius: 999,
+    borderRadius: 12,
     border: '1px solid rgba(255,255,255,0.12)',
     background: 'rgba(255,255,255,0.06)',
     color: '#e6e6e6',
     textDecoration: 'none',
-    fontWeight: 900 as const,
+    fontWeight: 800 as const,
   }
 }
 
@@ -256,9 +240,9 @@ function planBadge(plan?: string | null) {
 
   const style =
     p === 'enterprise'
-      ? pillStyle('rgba(168,85,247,0.16)', 'rgba(168,85,247,0.38)', '#e9d5ff')
+      ? pillStyle('rgba(168,85,247,0.14)', 'rgba(168,85,247,0.35)', '#e9d5ff')
       : p === 'pro'
-      ? pillStyle('rgba(34,211,238,0.16)', 'rgba(34,211,238,0.40)', '#cffafe')
+      ? pillStyle('rgba(59,130,246,0.14)', 'rgba(59,130,246,0.35)', '#bfdbfe')
       : pillStyle(
           'rgba(255,255,255,0.06)',
           'rgba(255,255,255,0.12)',
@@ -284,19 +268,35 @@ function statCard(
   value: number,
   tone: 'default' | 'warn' | 'risk' = 'default'
 ) {
-  const classes =
+  const style =
     tone === 'risk'
-      ? 'border-red-400/35 bg-gradient-to-br from-red-500/20 to-red-500/5 text-red-100 shadow-[0_0_35px_rgba(239,68,68,0.12)]'
+      ? {
+          border: '1px solid rgba(239,68,68,0.35)',
+          background: 'rgba(239,68,68,0.08)',
+          color: '#fecaca',
+        }
       : tone === 'warn'
-      ? 'border-amber-400/35 bg-gradient-to-br from-amber-500/18 to-amber-500/5 text-amber-100'
-      : 'border-white/10 bg-gradient-to-br from-white/[0.055] to-white/[0.025] text-white'
+      ? {
+          border: '1px solid rgba(245,158,11,0.35)',
+          background: 'rgba(245,158,11,0.08)',
+          color: '#fde68a',
+        }
+      : {
+          border: '1px solid rgba(255,255,255,0.12)',
+          background: 'rgba(255,255,255,0.04)',
+          color: '#e6e6e6',
+        }
 
   return (
     <div
-      className={`rounded-[22px] border p-5 transition hover:scale-[1.015] ${classes}`}
+      style={{
+        padding: 16,
+        borderRadius: 16,
+        ...style,
+      }}
     >
-      <div className="text-sm text-white/60">{title}</div>
-      <div className="mt-4 text-3xl font-black tracking-tight">{value}</div>
+      <div style={{ fontSize: 12, opacity: 0.8 }}>{title}</div>
+      <div style={{ marginTop: 8, fontSize: 28, fontWeight: 900 }}>{value}</div>
     </div>
   )
 }
@@ -313,8 +313,8 @@ function planSummaryCard(params: {
   const limits = getPlanLimits(currentPlan)
   const limit = Number.isFinite(limits.maxProducts) ? limits.maxProducts : null
   const scanLimit = Number.isFinite(limits.maxScansPerMonth)
-    ? limits.maxScansPerMonth
-    : null
+  ? limits.maxScansPerMonth
+  : null
   const isFree = currentPlan === 'free'
   const isPro = currentPlan === 'pro'
   const isEnterprise = currentPlan === 'enterprise'
@@ -323,16 +323,57 @@ function planSummaryCard(params: {
       ? Math.min(100, Math.round((productsCount / limit) * 100))
       : 0
 
+  const tone = isEnterprise
+    ? {
+        border: '1px solid rgba(168,85,247,0.35)',
+        background:
+          'linear-gradient(135deg, rgba(168,85,247,0.16), rgba(59,130,246,0.10))',
+      }
+    : isPro
+    ? {
+        border: '1px solid rgba(59,130,246,0.35)',
+        background:
+          'linear-gradient(135deg, rgba(59,130,246,0.15), rgba(59,130,246,0.08))',
+      }
+    : {
+        border: '1px solid rgba(245,158,11,0.30)',
+        background:
+          'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(255,255,255,0.04))',
+      }
+
   const canStillCreate = canCreateProduct({
     plan: currentPlan,
     currentProductCount: productsCount,
   })
 
   return (
-    <section className="mt-8 rounded-[30px] border border-cyan-400/25 bg-gradient-to-br from-cyan-400/[0.12] via-blue-500/[0.08] to-white/[0.03] p-5 shadow-[0_0_60px_rgba(34,211,238,0.10)] md:p-7">
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-        <div>
-          <div className="flex flex-wrap items-center gap-3">
+    <div
+      style={{
+        marginTop: 18,
+        marginBottom: 18,
+        padding: 18,
+        borderRadius: 18,
+        ...tone,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: 16,
+          alignItems: 'center',
+          flexWrap: 'wrap',
+        }}
+      >
+        <div style={{ minWidth: 260 }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 10,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
             {planBadge(currentPlan)}
             {isPro ? (
               <span
@@ -369,90 +410,114 @@ function planSummaryCard(params: {
             ) : null}
           </div>
 
-          <h2 className="mt-5 text-3xl font-black tracking-tight">
+          <div style={{ marginTop: 12, fontSize: 20, fontWeight: 900 }}>
             {isEnterprise
               ? 'Kurumsal plan aktif'
               : isPro
               ? 'Pro plan aktif'
               : 'Ücretsiz plan aktif'}
-          </h2>
+          </div>
 
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-white/68 md:text-base">
+          <div
+            style={{
+              marginTop: 8,
+              opacity: 0.78,
+              fontSize: 14,
+              lineHeight: 1.6,
+            }}
+          >
             {isEnterprise
               ? 'Sınırsız ürün, gelişmiş operasyon ve kurumsal genişleme için uygun yapı.'
               : isPro
               ? 'Ürün limitin yükseldi. Ödeme doğrulandı ve hesabın Pro seviyesinde çalışıyor.'
-              : `Ücretsiz plan ile ${
-                  limit ?? 0
-                } ürün limitin bulunur. Limit dolduğunda Pro’ya yükselterek devam edebilirsin.`}
-          </p>
-
-          <div className="mt-5 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4 text-sm leading-7 text-cyan-50">
-            Bu panel; okutma verilerini, şüpheli aktiviteleri ve sahtecilik
-            alarmlarını tek merkezden takip etmen için tasarlandı.
+              : `Ücretsiz plan ile ${limit ?? 0} ürün limitin bulunur. Limit dolduğunda Pro’ya yükselterek devam edebilirsin.`}
           </div>
         </div>
 
-        <div className="rounded-[24px] border border-white/10 bg-[#08111f]/55 p-5">
-          <div className="text-sm text-white/65">Ürün kullanımı</div>
-
-          <div className="mt-3 text-sm text-white/60">
-            Aylık okutma limiti:{' '}
-            <b className="text-white">
-              {scanLimit === null ? 'sınırsız' : scanLimit}
-            </b>
-          </div>
-
-          <div className="mt-3 text-3xl font-black">
-            {limit === null
-              ? `${productsCount} / sınırsız`
-              : `${productsCount} / ${limit}`}
-          </div>
-
-          {limit !== null ? (
-            <>
-              <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/10">
-                <div
-                  className={[
-                    'h-full rounded-full',
-                    usedPercent >= 100
-                      ? 'bg-red-400'
-                      : usedPercent >= 80
-                      ? 'bg-amber-400'
-                      : 'bg-cyan-400',
-                  ].join(' ')}
-                  style={{ width: `${usedPercent}%` }}
-                />
-              </div>
-
-              <div className="mt-3 text-xs text-white/55">
-                Kullanım: %{usedPercent}
-              </div>
-            </>
-          ) : (
-            <div className="mt-3 text-xs text-white/55">
-              Kurumsal planda ürün limiti bulunmaz.
+        <div
+          style={{
+            minWidth: 260,
+            display: 'grid',
+            gap: 10,
+            justifyItems: 'stretch',
+          }}
+        >
+          <div
+            style={{
+              padding: 14,
+              borderRadius: 14,
+              border: '1px solid rgba(255,255,255,0.10)',
+              background: 'rgba(0,0,0,0.16)',
+            }}
+          >
+            <div style={{ fontSize: 12, opacity: 0.78 }}>Ürün kullanımı</div>
+            <div style={{ marginTop: 6, fontSize: 12, opacity: 0.7 }}>
+  Aylık okutma limiti:{' '}
+  <b style={{ opacity: 1 }}>
+    {scanLimit === null ? 'sınırsız' : scanLimit}
+  </b>
+</div>
+            <div style={{ marginTop: 6, fontSize: 22, fontWeight: 900 }}>
+              {limit === null
+                ? `${productsCount} / sınırsız`
+                : `${productsCount} / ${limit}`}
             </div>
-          )}
 
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            <Link href="/admin/create" className={buttonClass('default')}>
+            {limit !== null ? (
+              <>
+                <div
+                  style={{
+                    marginTop: 10,
+                    height: 10,
+                    borderRadius: 999,
+                    background: 'rgba(255,255,255,0.10)',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${usedPercent}%`,
+                      height: '100%',
+                      borderRadius: 999,
+                      background:
+                        usedPercent >= 100
+                          ? 'rgba(239,68,68,0.85)'
+                          : usedPercent >= 80
+                          ? 'rgba(245,158,11,0.85)'
+                          : 'rgba(59,130,246,0.85)',
+                    }}
+                  />
+                </div>
+
+                <div style={{ marginTop: 8, fontSize: 12, opacity: 0.74 }}>
+                  Kullanım: %{usedPercent}
+                </div>
+              </>
+            ) : (
+              <div style={{ marginTop: 8, fontSize: 12, opacity: 0.74 }}>
+                Kurumsal planda ürün limiti bulunmaz.
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <Link href="/admin/create" style={headerButtonStyle()}>
               ➕ Yeni Ürün
             </Link>
 
             {isFree ? (
-              <Link href="/admin/upgrade" className={buttonClass('primary')}>
+              <Link href="/admin/upgrade" style={headerButtonStyle('primary')}>
                 💰 Pro’ya Geç
               </Link>
             ) : isPro ? (
-              <Link href="/admin/analytics" className={buttonClass('success')}>
+              <Link href="/admin/analytics" style={headerButtonStyle('success')}>
                 🚀 Pro Aktif
               </Link>
             ) : null}
           </div>
         </div>
       </div>
-    </section>
+    </div>
   )
 }
 
@@ -574,9 +639,16 @@ export default async function AdminPage({
 
   if (pagesErr) {
     return (
-      <div className="min-h-screen bg-[#08111f] p-10 text-white">
-        <h1 className="text-2xl font-black">Yönetim paneli hatası</h1>
-        <pre className="mt-4 whitespace-pre-wrap text-xs text-white/70">
+      <div
+        style={{
+          padding: 40,
+          fontFamily: 'system-ui',
+          background: '#0b0f17',
+          color: '#e6e6e6',
+        }}
+      >
+        <h1>Yönetim paneli hatası</h1>
+        <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, opacity: 0.8 }}>
           {JSON.stringify(pagesErr, null, 2)}
         </pre>
       </div>
@@ -599,9 +671,16 @@ export default async function AdminPage({
 
     if (prodErr) {
       return (
-        <div className="min-h-screen bg-[#08111f] p-10 text-white">
-          <h1 className="text-2xl font-black">Ürün verisi hatası</h1>
-          <pre className="mt-4 whitespace-pre-wrap text-xs text-white/70">
+        <div
+          style={{
+            padding: 40,
+            fontFamily: 'system-ui',
+            background: '#0b0f17',
+            color: '#e6e6e6',
+          }}
+        >
+          <h1>Ürün verisi hatası</h1>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, opacity: 0.8 }}>
             {JSON.stringify(prodErr, null, 2)}
           </pre>
         </div>
@@ -625,9 +704,16 @@ export default async function AdminPage({
 
     if (summaryErr) {
       return (
-        <div className="min-h-screen bg-[#08111f] p-10 text-white">
-          <h1 className="text-2xl font-black">Okutma özeti hatası</h1>
-          <pre className="mt-4 whitespace-pre-wrap text-xs text-white/70">
+        <div
+          style={{
+            padding: 40,
+            fontFamily: 'system-ui',
+            background: '#0b0f17',
+            color: '#e6e6e6',
+          }}
+        >
+          <h1>Okutma özeti hatası</h1>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, opacity: 0.8 }}>
             {JSON.stringify(summaryErr, null, 2)}
           </pre>
         </div>
@@ -662,9 +748,16 @@ export default async function AdminPage({
 
     if (eventsErr) {
       return (
-        <div className="min-h-screen bg-[#08111f] p-10 text-white">
-          <h1 className="text-2xl font-black">Alarm verisi hatası</h1>
-          <pre className="mt-4 whitespace-pre-wrap text-xs text-white/70">
+        <div
+          style={{
+            padding: 40,
+            fontFamily: 'system-ui',
+            background: '#0b0f17',
+            color: '#e6e6e6',
+          }}
+        >
+          <h1>Alarm verisi hatası</h1>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, opacity: 0.8 }}>
             {JSON.stringify(eventsErr, null, 2)}
           </pre>
         </div>
@@ -689,9 +782,16 @@ export default async function AdminPage({
 
     if (counterfeitErr) {
       return (
-        <div className="min-h-screen bg-[#08111f] p-10 text-white">
-          <h1 className="text-2xl font-black">Sahtecilik alarmı hatası</h1>
-          <pre className="mt-4 whitespace-pre-wrap text-xs text-white/70">
+        <div
+          style={{
+            padding: 40,
+            fontFamily: 'system-ui',
+            background: '#0b0f17',
+            color: '#e6e6e6',
+          }}
+        >
+          <h1>Sahtecilik alarmı hatası</h1>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, opacity: 0.8 }}>
             {JSON.stringify(counterfeitErr, null, 2)}
           </pre>
         </div>
@@ -791,444 +891,646 @@ export default async function AdminPage({
   const totalScans24h = enriched.reduce((acc, x) => acc + x.scans24h, 0)
 
   return (
-    <div className="min-h-screen bg-[#08111f] text-white">
-      <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 md:px-10 lg:px-12">
-        <header className="sticky top-0 z-30 rounded-2xl border border-white/10 bg-[#08111f]/85 px-4 py-3 backdrop-blur md:px-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div
+      style={{
+        padding: 40,
+        background: '#0b0f17',
+        minHeight: '100vh',
+        color: '#e6e6e6',
+        fontFamily: 'system-ui',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 16,
+          marginBottom: 18,
+          flexWrap: 'wrap',
+        }}
+      >
+        <div>
+          <h1 style={{ margin: 0 }}>🔐 Yönetici Paneli</h1>
+          <p style={{ opacity: 0.7, marginTop: 8 }}>DPPForge kontrol paneli</p>
+          <div style={{ marginTop: 10 }}>{planBadge(currentPlan)}</div>
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            gap: 10,
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        />
+      </div>
+
+      {planSummaryCard({
+        currentPlan,
+        productsCount: pages.length,
+      })}
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(5, minmax(0,1fr))',
+          gap: 12,
+          marginBottom: 16,
+        }}
+      >
+        {statCard('Toplam ürün', pages.length)}
+        {statCard('Toplam okutma', totalScans)}
+        {statCard('Son 24 saat okutma', totalScans24h)}
+        {statCard('Şüpheli ürün', suspiciousCount, 'warn')}
+        {statCard('Aktif sahtecilik', counterfeitCount, 'risk')}
+      </div>
+
+      {uniqueCounterfeitAlarms.length > 0 && (
+        <div
+          style={{
+            marginTop: 10,
+            marginBottom: 16,
+            padding: 16,
+            borderRadius: 18,
+            border: '1px solid rgba(239,68,68,0.25)',
+            background: 'rgba(239,68,68,0.08)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 12,
+              flexWrap: 'wrap',
+            }}
+          >
             <div>
-              <div className="text-sm text-white/50">DPPForge</div>
-              <h1 className="mt-1 text-2xl font-black tracking-tight md:text-3xl">
-                Yönetim Merkezi
-              </h1>
-            </div>
-
-            <nav className="flex gap-2 overflow-x-auto pb-1 text-sm">
-              <Link
-                href="/admin"
-                className="shrink-0 rounded-full border border-cyan-400/35 bg-cyan-400/15 px-4 py-2 font-extrabold text-cyan-100"
-              >
-                🏠 Genel Bakış
-              </Link>
-              <Link
-                href="/admin/alarms"
-                className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 font-extrabold text-white/80 hover:bg-white/[0.07]"
-              >
-                ⚠️ Alarmlar
-              </Link>
-              <Link
-                href="/admin/payments"
-                className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 font-extrabold text-white/80 hover:bg-white/[0.07]"
-              >
-                💳 Ödemeler
-              </Link>
-              <Link
-                href="/admin/revenue"
-                className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 font-extrabold text-white/80 hover:bg-white/[0.07]"
-              >
-                💰 Gelir
-              </Link>
-              <Link
-                href="/admin/analytics"
-                className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 font-extrabold text-white/80 hover:bg-white/[0.07]"
-              >
-                📊 Analitik
-              </Link>
-              <Link
-                href="/admin/create"
-                className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 font-extrabold text-white/80 hover:bg-white/[0.07]"
-              >
-                ➕ Yeni Ürün
-              </Link>
-            </nav>
-
-            <Link href="/logout" className={buttonClass('default')}>
-              Çıkış yap
-            </Link>
-          </div>
-        </header>
-
-        <section className="pt-12">
-          <div className="flex flex-col gap-3">
-            <div className="text-sm font-semibold text-cyan-300">
-              🔐 Yönetici Paneli
-            </div>
-            <h2 className="text-3xl font-black tracking-tight md:text-4xl">
-              Marka koruma operasyonun tek merkezde.
-            </h2>
-            <p className="max-w-2xl text-base leading-8 text-white/62">
-              Ürünleri, okutma hareketlerini, şüpheli aktiviteleri ve
-              sahtecilik alarmlarını landing ile uyumlu premium yönetim
-              panelinden takip et.
-            </p>
-          </div>
-
-          {planSummaryCard({
-            currentPlan,
-            productsCount: pages.length,
-          })}
-
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {statCard('Toplam ürün', pages.length)}
-            {statCard('Toplam okutma', totalScans)}
-            {statCard('Son 24 saat okutma', totalScans24h)}
-            {statCard('Şüpheli ürün', suspiciousCount, 'warn')}
-            {statCard('Aktif sahtecilik', counterfeitCount, 'risk')}
-          </div>
-        </section>
-
-        {uniqueCounterfeitAlarms.length > 0 && (
-          <section className="mt-5 rounded-[26px] border border-red-400/25 bg-gradient-to-br from-red-500/16 to-red-500/5 p-5 shadow-[0_0_45px_rgba(239,68,68,0.12)]">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <div className="text-lg font-black text-red-100">
-                  🚨 Aktif Sahtecilik Alarmları
-                </div>
-                <div className="mt-1 text-sm text-white/65">
-                  Sahtecilik riski tespit edilen ürünler
-                </div>
+              <div style={{ fontWeight: 900, fontSize: 16, color: '#fecaca' }}>
+                🚨 Aktif Sahtecilik Alarmları
               </div>
-
-              <div
-                style={pillStyle(
-                  'rgba(239,68,68,0.12)',
-                  'rgba(239,68,68,0.25)',
-                  '#fecaca'
-                )}
-              >
-                {uniqueCounterfeitAlarms.length} aktif
+              <div style={{ opacity: 0.8, fontSize: 13, marginTop: 6 }}>
+                Sahtecilik riski tespit edilen ürünler
               </div>
             </div>
 
-            <div className="mt-4 grid gap-3">
-              {uniqueCounterfeitAlarms.slice(0, 5).map((alarm) => {
-                const ctx = enrichedByPageId.get(alarm.page_id)
-                const slug = ctx?.p.slug ?? alarm.page_id.slice(0, 8)
-                const name = ctx?.prod?.name_tr ?? '—'
-                const sku = ctx?.prod?.sku ?? ''
+            <div
+              style={pillStyle(
+                'rgba(239,68,68,0.12)',
+                'rgba(239,68,68,0.25)',
+                '#fecaca'
+              )}
+            >
+              {uniqueCounterfeitAlarms.length} aktif
+            </div>
+          </div>
 
-                return (
-                  <div
-                    key={alarm.id}
-                    className="flex flex-col gap-4 rounded-[20px] border border-red-400/25 bg-[#08111f]/45 p-4 md:flex-row md:items-center md:justify-between"
-                  >
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <div className="font-black">{name}</div>
-                        {sku ? (
-                          <div className="text-xs text-white/55">{sku}</div>
-                        ) : null}
+          <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
+            {uniqueCounterfeitAlarms.slice(0, 5).map((alarm) => {
+              const ctx = enrichedByPageId.get(alarm.page_id)
+              const slug = ctx?.p.slug ?? alarm.page_id.slice(0, 8)
+              const name = ctx?.prod?.name_tr ?? '—'
+              const sku = ctx?.prod?.sku ?? ''
+
+              return (
+                <div
+                  key={alarm.id}
+                  style={{
+                    padding: 12,
+                    borderRadius: 14,
+                    border: '1px solid rgba(239,68,68,0.25)',
+                    background: 'rgba(0,0,0,0.18)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    alignItems: 'center',
+                  }}
+                >
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: 10,
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <div style={{ fontWeight: 900 }}>{name}</div>
+                      {sku ? (
+                        <div style={{ opacity: 0.7, fontSize: 12 }}>{sku}</div>
+                      ) : null}
+                      <span
+                        style={pillStyle(
+                          'rgba(239,68,68,0.14)',
+                          'rgba(239,68,68,0.35)',
+                          '#fecaca'
+                        )}
+                      >
+                        {translateRiskLevel(alarm.risk_level)}
+                      </span>
+                      <span
+                        style={pillStyle(
+                          'rgba(255,255,255,0.06)',
+                          'rgba(255,255,255,0.12)',
+                          'rgba(255,255,255,0.85)'
+                        )}
+                      >
+                        Risk skoru: {alarm.risk_score ?? '-'}
+                      </span>
+                      <span
+                        style={pillStyle(
+                          'rgba(239,68,68,0.12)',
+                          'rgba(239,68,68,0.25)',
+                          '#fecaca'
+                        )}
+                      >
+                        ⏱ {sinceLabel(alarm.created_at)}
+                      </span>
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 8,
+                        display: 'flex',
+                        gap: 8,
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      {(alarm.reasons ?? []).slice(0, 4).map((r) => (
                         <span
-                          style={pillStyle(
-                            'rgba(239,68,68,0.14)',
-                            'rgba(239,68,68,0.35)',
-                            '#fecaca'
-                          )}
-                        >
-                          {translateRiskLevel(alarm.risk_level)}
-                        </span>
-                        <span
+                          key={r}
                           style={pillStyle(
                             'rgba(255,255,255,0.06)',
                             'rgba(255,255,255,0.12)',
                             'rgba(255,255,255,0.85)'
                           )}
                         >
-                          Risk skoru: {alarm.risk_score ?? '-'}
+                          {translateReason(r)}
                         </span>
-                        <span
-                          style={pillStyle(
-                            'rgba(239,68,68,0.12)',
-                            'rgba(239,68,68,0.25)',
-                            '#fecaca'
-                          )}
-                        >
-                          ⏱ {sinceLabel(alarm.created_at)}
-                        </span>
-                      </div>
-
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {(alarm.reasons ?? []).slice(0, 4).map((r) => (
-                          <span
-                            key={r}
-                            style={pillStyle(
-                              'rgba(255,255,255,0.06)',
-                              'rgba(255,255,255,0.12)',
-                              'rgba(255,255,255,0.85)'
-                            )}
-                          >
-                            {translateReason(r)}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="mt-3 text-xs text-white/50">/p/{slug}</div>
+                      ))}
                     </div>
 
+                    <div style={{ marginTop: 8, opacity: 0.7, fontSize: 12 }}>
+                      /p/{slug}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <Link
                       href={`/admin/p/${alarm.page_id}`}
-                      className={buttonClass('danger')}
+                      style={{
+                        ...headerButtonStyle(),
+                        padding: '8px 10px',
+                        fontSize: 13,
+                      }}
                     >
                       Detaylar
                     </Link>
                   </div>
-                )
-              })}
-            </div>
-          </section>
-        )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
-        <section className="mt-5 rounded-[26px] border border-white/10 bg-white/[0.035] p-5">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className="text-lg font-black">⚠ Açık Alarmlar</div>
-              <div className="mt-1 text-sm text-white/60">
-                Şüpheli okuma olayları —{' '}
-                {sevFilter === 'all' ? 'tümü' : translateSeverity(sevFilter)}
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <div
-                style={pillStyle(
-                  'rgba(239,68,68,0.12)',
-                  'rgba(239,68,68,0.25)',
-                  '#fecaca'
-                )}
-              >
-                {openEvents.length} açık
-              </div>
-
-              <Link href="/admin/alarms" className={buttonClass('default')}>
-                Tüm alarmlar
-              </Link>
+      <div
+        style={{
+          marginTop: 10,
+          padding: 16,
+          borderRadius: 18,
+          border: '1px solid rgba(255,255,255,0.12)',
+          background: 'rgba(255,255,255,0.06)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 12,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div>
+            <div style={{ fontWeight: 900, fontSize: 16 }}>⚠ Açık Alarmlar</div>
+            <div style={{ opacity: 0.75, fontSize: 13, marginTop: 6 }}>
+              Şüpheli okuma olayları (açık) —{' '}
+              {sevFilter === 'all' ? 'tümü' : translateSeverity(sevFilter)}
             </div>
           </div>
 
-          <form className="mt-4 flex flex-wrap items-center gap-3">
-            <label className="text-sm text-white/70">Ciddiyet:</label>
-
-            <select
-              name="sev"
-              defaultValue={sevFilter}
-              className="h-10 rounded-2xl border border-white/10 bg-[#08111f] px-3 text-sm text-white outline-none"
+          <div
+            style={{
+              display: 'flex',
+              gap: 10,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div
+              style={pillStyle(
+                'rgba(239,68,68,0.12)',
+                'rgba(239,68,68,0.25)',
+                '#fecaca'
+              )}
             >
-              <option value="all">Hepsi</option>
-              <option value="high">Yüksek</option>
-              <option value="medium">Orta</option>
-              <option value="low">Düşük</option>
-            </select>
-
-            <input type="hidden" name="q" value={q ?? ''} />
-            <input type="hidden" name="review" value={reviewFilter} />
-            <input type="hidden" name="sort" value={sortMode} />
-            {onlySuspicious ? (
-              <input type="hidden" name="suspicious" value="1" />
-            ) : null}
-
-            <button
-              type="submit"
-              className="h-10 rounded-2xl border border-white/10 bg-white/[0.06] px-4 text-sm font-bold text-white hover:bg-white/[0.09]"
-            >
-              Uygula
-            </button>
-
-            <a href="/admin" className="text-sm font-semibold text-cyan-200">
-              Sıfırla
-            </a>
-          </form>
-
-          {openEvents.length === 0 ? (
-            <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm leading-7 text-emerald-50">
-              🎉 Harika! Aktif alarm yok. Tüm ürünler normal çalışıyor.
+              {openEvents.length} açık
             </div>
-          ) : (
-            <div className="mt-4 grid gap-3">
-              {openEvents.slice(0, 5).map((ev) => {
-                const ctx = enrichedByPageId.get(ev.page_id)
-                const slug = ctx?.p.slug ?? ev.page_id.slice(0, 8)
-                const name = ctx?.prod?.name_tr ?? '—'
-                const sku = ctx?.prod?.sku ?? ''
-                const isHigh = ev.severity === 'high'
 
-                return (
-                  <div
-                    key={ev.id}
-                    className={[
-                      'flex flex-col gap-4 rounded-[20px] border bg-[#08111f]/45 p-4 md:flex-row md:items-center md:justify-between',
-                      isHigh
-                        ? 'border-red-400/35 shadow-[0_0_35px_rgba(239,68,68,0.10)]'
-                        : 'border-white/10',
-                    ].join(' ')}
-                  >
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <div className="truncate font-black">{name}</div>
-                        {sku ? (
-                          <div className="text-xs text-white/55">{sku}</div>
-                        ) : null}
-                        {severityBadge(ev.severity)}
+            <Link
+              href="/admin/alarms"
+              style={{
+                ...headerButtonStyle(),
+                padding: '8px 10px',
+                fontSize: 13,
+              }}
+            >
+              Tüm alarmlar
+            </Link>
+          </div>
+        </div>
+
+        <form
+          style={{
+            marginTop: 10,
+            display: 'flex',
+            gap: 10,
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          <label style={{ fontSize: 13, opacity: 0.85 }}>Ciddiyet:</label>
+
+          <select
+            name="sev"
+            defaultValue={sevFilter}
+            style={{
+              padding: '8px 10px',
+              borderRadius: 12,
+              border: '1px solid rgba(255,255,255,0.12)',
+              background: 'rgba(255,255,255,0.06)',
+              color: '#e6e6e6',
+            }}
+          >
+            <option value="all">Hepsi</option>
+            <option value="high">Yüksek</option>
+            <option value="medium">Orta</option>
+            <option value="low">Düşük</option>
+          </select>
+
+          <input type="hidden" name="q" value={q ?? ''} />
+          <input type="hidden" name="review" value={reviewFilter} />
+          <input type="hidden" name="sort" value={sortMode} />
+          {onlySuspicious ? (
+            <input type="hidden" name="suspicious" value="1" />
+          ) : null}
+
+          <button
+            type="submit"
+            style={{
+              padding: '8px 10px',
+              borderRadius: 12,
+              border: '1px solid rgba(255,255,255,0.12)',
+              background: 'rgba(255,255,255,0.08)',
+              color: '#e6e6e6',
+              cursor: 'pointer',
+              fontWeight: 800,
+            }}
+          >
+            Uygula
+          </button>
+
+          <a
+            href="/admin"
+            style={{
+              color: '#a7c7ff',
+              textDecoration: 'none',
+              fontSize: 13,
+              opacity: 0.9,
+            }}
+          >
+            Sıfırla
+          </a>
+        </form>
+
+        {openEvents.length === 0 ? (
+          <div
+            style={{
+              marginTop: 12,
+              opacity: 0.85,
+              fontSize: 13,
+              lineHeight: 1.6,
+            }}
+          >
+            🎉 Harika! Aktif alarm yok. Tüm ürünler normal çalışıyor.
+          </div>
+        ) : (
+          <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
+            {openEvents.slice(0, 5).map((ev) => {
+              const ctx = enrichedByPageId.get(ev.page_id)
+              const slug = ctx?.p.slug ?? ev.page_id.slice(0, 8)
+              const name = ctx?.prod?.name_tr ?? '—'
+              const sku = ctx?.prod?.sku ?? ''
+              const isHigh = ev.severity === 'high'
+
+              return (
+                <div
+                  key={ev.id}
+                  style={{
+                    padding: 12,
+                    borderRadius: 14,
+                    border: isHigh
+                      ? '1px solid rgba(239,68,68,0.35)'
+                      : '1px solid rgba(255,255,255,0.10)',
+                    background: 'rgba(0,0,0,0.18)',
+                    boxShadow: isHigh
+                      ? '0 0 0 1px rgba(239,68,68,0.18), 0 12px 40px rgba(239,68,68,0.06)'
+                      : 'none',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    alignItems: 'center',
+                  }}
+                >
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: 10,
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontWeight: 900,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {name}
+                      </div>
+
+                      {sku ? (
                         <div
-                          style={pillStyle(
-                            'rgba(239,68,68,0.12)',
-                            'rgba(239,68,68,0.25)',
-                            '#fecaca'
-                          )}
+                          style={{
+                            opacity: 0.7,
+                            fontSize: 12,
+                            whiteSpace: 'nowrap',
+                          }}
                         >
-                          ⏱ {since(ev.last_seen_at)}
+                          {sku}
                         </div>
-                        <div
+                      ) : null}
+
+                      {severityBadge(ev.severity)}
+
+                      <div
+                        style={pillStyle(
+                          'rgba(239,68,68,0.12)',
+                          'rgba(239,68,68,0.25)',
+                          '#fecaca'
+                        )}
+                      >
+                        ⏱ {since(ev.last_seen_at)}
+                      </div>
+
+                      <div
+                        style={pillStyle(
+                          'rgba(255,255,255,0.06)',
+                          'rgba(255,255,255,0.12)',
+                          'rgba(255,255,255,0.85)'
+                        )}
+                      >
+                        🔁 {ev.occurrences}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 8,
+                        display: 'flex',
+                        gap: 8,
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      {(ev.reasons ?? []).slice(0, 4).map((r) => (
+                        <span
+                          key={r}
                           style={pillStyle(
                             'rgba(255,255,255,0.06)',
                             'rgba(255,255,255,0.12)',
                             'rgba(255,255,255,0.85)'
                           )}
                         >
-                          🔁 {ev.occurrences}
-                        </div>
-                      </div>
-
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {(ev.reasons ?? []).slice(0, 4).map((r) => (
-                          <span
-                            key={r}
-                            style={pillStyle(
-                              'rgba(255,255,255,0.06)',
-                              'rgba(255,255,255,0.12)',
-                              'rgba(255,255,255,0.85)'
-                            )}
-                          >
-                            {translateReason(r)}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="mt-3 text-xs text-white/50">/p/{slug}</div>
+                          {translateReason(r)}
+                        </span>
+                      ))}
                     </div>
 
-                    <div className="flex flex-wrap justify-end gap-2">
-                      <OpenEventRow
-                        eventId={ev.id}
-                        pageId={ev.page_id}
-                        severity={ev.severity}
-                      />
+                    <div style={{ marginTop: 8, opacity: 0.7, fontSize: 12 }}>
+                      /p/{slug}
                     </div>
                   </div>
-                )
-              })}
-            </div>
-          )}
-        </section>
 
-        <section className="mt-5">
-          <div className="mb-4 text-xs text-white/55">
-            Toplam sayfa: <b className="text-white">{pages.length}</b> —
-            Gösterilen: <b className="text-white">{visible.length}</b> — Açık
-            rapor: <b className="text-white">{openReportsCount}</b>
-          </div>
-
-          <div className="rounded-[26px] border border-white/10 bg-white/[0.035] p-5">
-            <form className="flex flex-wrap items-center gap-3">
-              <input
-                name="q"
-                defaultValue={q ?? ''}
-                placeholder="Ara: ürün adı / SKU / sayfa yolu"
-                className="h-11 w-full rounded-2xl border border-white/10 bg-[#08111f] px-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 sm:w-80"
-              />
-
-              <ReviewSelect value={reviewFilter} />
-
-              <select
-                name="sort"
-                defaultValue={sortMode}
-                className="h-11 rounded-2xl border border-white/10 bg-[#08111f] px-4 text-sm text-white outline-none"
-              >
-                <option value="last_scan_desc">Son okutma: yeni → eski</option>
-                <option value="published_desc">Yayın: yeni → eski</option>
-                <option value="published_asc">Yayın: eski → yeni</option>
-                <option value="scans_desc">Okutma: çok → az</option>
-                <option value="scans_asc">Okutma: az → çok</option>
-                <option value="slug_asc">Sayfa yolu: A → Z</option>
-              </select>
-
-              <label className="flex items-center gap-2 text-sm text-white/75">
-                <input
-                  type="checkbox"
-                  name="suspicious"
-                  value="1"
-                  defaultChecked={onlySuspicious}
-                />
-                Sadece ⚠ şüpheli
-              </label>
-
-              <button type="submit" className={buttonClass('primary')}>
-                Uygula
-              </button>
-
-              <a href="/admin" className="text-sm font-semibold text-cyan-200">
-                Sıfırla
-              </a>
-            </form>
-
-            {visible.length === 0 ? (
-              <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-                <div className="font-black">Sonuç bulunamadı</div>
-                <div className="mt-2 text-sm text-white/60">
-                  Filtreleri değiştirerek tekrar deneyin veya{' '}
-                  <a href="/admin" className="text-cyan-200">
-                    sıfırlayın
-                  </a>
-                  .
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 8,
+                      flexWrap: 'wrap',
+                      justifyContent: 'flex-end',
+                    }}
+                  >
+                    <OpenEventRow
+                      eventId={ev.id}
+                      pageId={ev.page_id}
+                      severity={ev.severity}
+                    />
+                  </div>
                 </div>
-              </div>
-            ) : null}
-
-            <div className="mt-5 overflow-x-auto rounded-[22px] border border-white/10">
-              <table className="w-full min-w-[920px] border-collapse">
-                <thead className="bg-white/[0.035] text-left text-xs uppercase tracking-wide text-white/55">
-                  <tr>
-                    <th className="px-4 py-4">Sayfa yolu</th>
-                    <th className="px-4 py-4">Ürün</th>
-                    <th className="px-4 py-4">Toplam okutma</th>
-                    <th className="px-4 py-4">Yayın</th>
-                    <th className="px-4 py-4">Durum</th>
-                    <th className="px-4 py-4 text-right" />
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {visible.map(
-                    ({
-                      p,
-                      prod,
-                      scansTotal,
-                      isSuspicious,
-                      scans24h,
-                      uniqueIps24h,
-                      uniqueCountries24h,
-                      lastScanAt,
-                      counterfeit,
-                    }) => (
-                      <AdminRow
-                        key={p.id}
-                        page={p}
-                        product={prod ?? null}
-                        scansCount={scansTotal}
-                        isSuspicious={isSuspicious}
-                        reviewState={normalizeReviewState(p.review_state)}
-                        scans24h={scans24h}
-                        uniqueIps24h={uniqueIps24h}
-                        uniqueCountries24h={uniqueCountries24h}
-                        lastScanAt={lastScanAt}
-                        counterfeit={counterfeit}
-                      />
-                    )
-                  )}
-                </tbody>
-              </table>
-            </div>
+              )
+            })}
           </div>
-        </section>
-      </main>
+        )}
+      </div>
+
+      <div style={{ marginTop: 16, opacity: 0.7, fontSize: 12 }}>
+        Toplam sayfa: <b style={{ opacity: 1 }}>{pages.length}</b> — Gösterilen:{' '}
+        <b style={{ opacity: 1 }}>{visible.length}</b> — Açık rapor:{' '}
+        <b style={{ opacity: 1 }}>{openReportsCount}</b>
+      </div>
+
+      <div
+        style={{
+          marginTop: 18,
+          display: 'flex',
+          gap: 10,
+          flexWrap: 'wrap',
+          alignItems: 'center',
+        }}
+      >
+        <form
+          style={{
+            display: 'flex',
+            gap: 10,
+            flexWrap: 'wrap',
+            alignItems: 'center',
+          }}
+        >
+          <input
+            name="q"
+            defaultValue={q ?? ''}
+            placeholder="Ara: ürün adı / SKU / sayfa yolu"
+            style={{
+              width: 320,
+              padding: '10px 12px',
+              borderRadius: 12,
+              border: '1px solid rgba(255,255,255,0.12)',
+              background: 'rgba(255,255,255,0.06)',
+              color: '#e6e6e6',
+              outline: 'none',
+            }}
+          />
+
+          <ReviewSelect value={reviewFilter} />
+
+          <select
+            name="sort"
+            defaultValue={sortMode}
+            style={{
+              padding: '10px 12px',
+              borderRadius: 12,
+              border: '1px solid rgba(255,255,255,0.12)',
+              background: 'rgba(255,255,255,0.06)',
+              color: '#e6e6e6',
+            }}
+          >
+            <option value="last_scan_desc">Son okutma: yeni → eski</option>
+            <option value="published_desc">Yayın: yeni → eski</option>
+            <option value="published_asc">Yayın: eski → yeni</option>
+            <option value="scans_desc">Okutma: çok → az</option>
+            <option value="scans_asc">Okutma: az → çok</option>
+            <option value="slug_asc">Sayfa yolu: A → Z</option>
+          </select>
+
+          <label
+            style={{
+              display: 'flex',
+              gap: 8,
+              alignItems: 'center',
+              fontSize: 13,
+              opacity: 0.9,
+            }}
+          >
+            <input
+              type="checkbox"
+              name="suspicious"
+              value="1"
+              defaultChecked={onlySuspicious}
+            />
+            Sadece ⚠ şüpheli
+          </label>
+
+          <button
+            type="submit"
+            style={{
+              padding: '10px 12px',
+              borderRadius: 12,
+              border: '1px solid rgba(255,255,255,0.12)',
+              background: 'rgba(255,255,255,0.08)',
+              color: '#e6e6e6',
+              cursor: 'pointer',
+              fontWeight: 700,
+            }}
+          >
+            Uygula
+          </button>
+
+          <a
+            href="/admin"
+            style={{
+              color: '#a7c7ff',
+              textDecoration: 'none',
+              fontSize: 13,
+              opacity: 0.9,
+            }}
+          >
+            Sıfırla
+          </a>
+        </form>
+      </div>
+
+      {visible.length === 0 ? (
+        <div
+          style={{
+            marginTop: 20,
+            padding: 16,
+            borderRadius: 16,
+            border: '1px solid rgba(255,255,255,0.12)',
+            background: 'rgba(255,255,255,0.06)',
+          }}
+        >
+          <div style={{ fontWeight: 800, marginBottom: 6 }}>Sonuç bulunamadı</div>
+          <div style={{ opacity: 0.75, fontSize: 13 }}>
+            Filtreleri değiştirerek tekrar deneyin veya{' '}
+            <a href="/admin" style={{ color: '#a7c7ff', textDecoration: 'none' }}>
+              sıfırlayın
+            </a>
+            .
+          </div>
+        </div>
+      ) : null}
+
+      <table
+        style={{
+          width: '100%',
+          marginTop: 20,
+          borderCollapse: 'collapse',
+        }}
+      >
+        <thead>
+          <tr style={{ textAlign: 'left', opacity: 0.7 }}>
+            <th style={{ padding: '10px 8px' }}>Sayfa yolu</th>
+            <th style={{ padding: '10px 8px' }}>Ürün</th>
+            <th style={{ padding: '10px 8px' }}>Toplam okutma</th>
+            <th style={{ padding: '10px 8px' }}>Yayın</th>
+            <th style={{ padding: '10px 8px' }}>Durum</th>
+            <th style={{ padding: '10px 8px', textAlign: 'right' }} />
+          </tr>
+        </thead>
+
+        <tbody>
+          {visible.map(
+            ({
+              p,
+              prod,
+              scansTotal,
+              isSuspicious,
+              scans24h,
+              uniqueIps24h,
+              uniqueCountries24h,
+              lastScanAt,
+              counterfeit,
+            }) => (
+              <AdminRow
+                key={p.id}
+                page={p}
+                product={prod ?? null}
+                scansCount={scansTotal}
+                isSuspicious={isSuspicious}
+                reviewState={normalizeReviewState(p.review_state)}
+                scans24h={scans24h}
+                uniqueIps24h={uniqueIps24h}
+                uniqueCountries24h={uniqueCountries24h}
+                lastScanAt={lastScanAt}
+                counterfeit={counterfeit}
+              />
+            )
+          )}
+        </tbody>
+      </table>
     </div>
   )
 }
