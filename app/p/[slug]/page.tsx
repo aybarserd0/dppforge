@@ -85,6 +85,61 @@ type AuthenticityModel = {
   tone: 'safe' | 'review' | 'risk'
 }
 
+type TrustBadgeStatus = 'safe' | 'suspicious' | 'fake'
+
+function TrustBadge({ status }: { status: TrustBadgeStatus }) {
+  const config =
+    status === 'fake'
+      ? {
+          icon: '🚨',
+          title: 'Bu ürün sahte olabilir',
+          desc: 'Bu ürün için yüksek riskli doğrulama davranışı tespit edildi.',
+          border: 'rgba(239,68,68,0.40)',
+          bg: 'rgba(239,68,68,0.12)',
+          color: '#fecaca',
+        }
+      : status === 'suspicious'
+      ? {
+          icon: '⚠️',
+          title: 'Bu ürün şüpheli davranış gösteriyor',
+          desc: 'Doğrulama hareketlerinde inceleme gerektiren sinyaller görüldü.',
+          border: 'rgba(245,158,11,0.40)',
+          bg: 'rgba(245,158,11,0.12)',
+          color: '#fde68a',
+        }
+      : {
+          icon: '✅',
+          title: 'Bu ürün doğrulanmıştır',
+          desc: 'Şu anda olağandışı doğrulama davranışı tespit edilmedi.',
+          border: 'rgba(16,185,129,0.40)',
+          bg: 'rgba(16,185,129,0.12)',
+          color: '#bbf7d0',
+        }
+
+  return (
+    <div
+      style={{
+        marginTop: 14,
+        padding: 16,
+        borderRadius: 18,
+        border: `1px solid ${config.border}`,
+        background: config.bg,
+        color: config.color,
+      }}
+    >
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <div style={{ fontSize: 24, lineHeight: 1 }}>{config.icon}</div>
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 900 }}>{config.title}</div>
+          <div style={{ marginTop: 6, fontSize: 13, lineHeight: 1.6, opacity: 0.9 }}>
+            {config.desc}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 async function generateQrDataUrl(url: string) {
   return await QRCode.toDataURL(url, {
     margin: 1,
@@ -778,6 +833,14 @@ export default async function PublicDppPage({
     lastAlarmResolved: counterfeitAlarm ? false : lastAlarm?.resolved ?? null,
   })
 
+  const trustStatus: TrustBadgeStatus = counterfeitAlarm
+  ? 'fake'
+  : authenticity.tone === 'risk'
+  ? 'fake'
+  : authenticity.tone === 'review'
+  ? 'suspicious'
+  : 'safe'
+
   const title =
     page.lang_default === 'en'
       ? product.name_en || product.name_tr
@@ -847,6 +910,8 @@ export default async function PublicDppPage({
               )}
 
               <h1 style={{ margin: '8px 0 0', fontSize: 34 }}>{title}</h1>
+
+              <TrustBadge status={trustStatus} />
 
               <div style={{ fontSize: 13, opacity: 0.72, marginTop: 8 }}>
                 Bu sayfa ürünün doğrulama, izlenebilirlik ve güven değerlendirmesi için
