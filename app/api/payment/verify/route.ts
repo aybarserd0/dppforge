@@ -180,10 +180,14 @@ function computeNextExpiry(currentExpiryRaw: string | null | undefined) {
 }
 
 function normalizePlan(value: unknown) {
-  const raw = String(value ?? 'pro').trim().toLowerCase()
-  if (raw === 'enterprise') return 'enterprise'
+  const raw = String(value ?? '').trim().toLowerCase()
+
+  if (raw === 'starter') return 'starter'
   if (raw === 'pro') return 'pro'
-  return 'pro'
+  if (raw === 'business') return 'business'
+  if (raw === 'enterprise') return 'enterprise'
+
+  return 'pro' // fallback
 }
 
 function parseFraudStatus(value: unknown) {
