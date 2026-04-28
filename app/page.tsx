@@ -1,3 +1,4 @@
+import LossCalculator from '@/components/LossCalculator'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 export default async function Home() {
@@ -347,6 +348,7 @@ export default async function Home() {
           </div>
         </section>
 
+        <LossCalculator />
         <section id="pricing" className="border-t border-white/8 py-16">
           <div className="mx-auto max-w-3xl text-center">
             <div className="text-sm font-semibold text-cyan-300">
