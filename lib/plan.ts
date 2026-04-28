@@ -1,7 +1,7 @@
 // lib/plan.ts
 import { NextResponse } from 'next/server'
 
-export type PlanType = 'free' | 'pro' | 'enterprise'
+export type PlanType = 'free' | 'starter' | 'pro' | 'business' | 'enterprise'
 
 export type PlanLimits = {
   maxProducts: number
@@ -16,15 +16,17 @@ export type PlanLimits = {
 
 const rank: Record<PlanType, number> = {
   free: 0,
-  pro: 1,
-  enterprise: 2,
+  starter: 1,
+  pro: 2,
+  business: 3,
+  enterprise: 4,
 }
 
 
   const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   free: {
-    maxProducts: 3,
-    maxScansPerMonth: 100,
+    maxProducts: 1,
+    maxScansPerMonth: 50,
     canUseAlerts: false,
     canUseAdvancedAnalytics: false,
     canUseExports: false,
@@ -32,16 +34,40 @@ const rank: Record<PlanType, number> = {
     canUseWhiteLabel: false,
     canUseMultiUser: false,
   },
+
+  starter: {
+    maxProducts: 5,
+    maxScansPerMonth: 1000,
+    canUseAlerts: false,
+    canUseAdvancedAnalytics: false,
+    canUseExports: false,
+    canUseAPI: false,
+    canUseWhiteLabel: false,
+    canUseMultiUser: false,
+  },
+
   pro: {
-    maxProducts: 999999,
+    maxProducts: 25,
     maxScansPerMonth: 10000,
+    canUseAlerts: true,
+    canUseAdvancedAnalytics: true,
+    canUseExports: false,
+    canUseAPI: false,
+    canUseWhiteLabel: false,
+    canUseMultiUser: false,
+  },
+
+  business: {
+    maxProducts: 100,
+    maxScansPerMonth: 50000,
     canUseAlerts: true,
     canUseAdvancedAnalytics: true,
     canUseExports: true,
     canUseAPI: false,
     canUseWhiteLabel: false,
-    canUseMultiUser: false,
+    canUseMultiUser: true,
   },
+
   enterprise: {
     maxProducts: 999999,
     maxScansPerMonth: 999999999,
@@ -53,12 +79,14 @@ const rank: Record<PlanType, number> = {
     canUseMultiUser: true,
   },
 }
-
 export function normalizePlan(p: unknown): PlanType {
   const value = String(p ?? '').trim().toLowerCase()
 
   if (value === 'enterprise') return 'enterprise'
+  if (value === 'business') return 'business'
   if (value === 'pro') return 'pro'
+  if (value === 'starter') return 'starter'
+
   return 'free'
 }
 
