@@ -424,18 +424,22 @@ function planSummaryCard(params: {
 
           <div
             style={{
-              marginTop: 8,
-              opacity: 0.78,
-              fontSize: 14,
-              lineHeight: 1.6,
-            }}
-          >
-            {isEnterprise
-              ? 'Sınırsız ürün, gelişmiş operasyon ve kurumsal genişleme için uygun yapı.'
-              : isPro
-              ? 'Ürün limitin yükseldi. Ödeme doğrulandı ve hesabın Pro seviyesinde çalışıyor.'
-              : `Ücretsiz plan ile ${limit ?? 0} ürün limitin bulunur. Limit dolduğunda Pro’ya yükselterek devam edebilirsin.`}
-          </div>
+            marginTop: 8,
+            opacity: 0.78,
+            fontSize: 14,
+            lineHeight: 1.6,
+         }}
+       >
+            {currentPlan === 'enterprise'
+            ? '🏢 Kurumsal seviyede sınırsız ürün, API erişimi ve özel entegrasyonlarla operasyonlarını ölçekleyebilirsin.'
+            : currentPlan === 'business'
+            ? '🚀 Business plan ile yüksek hacimli doğrulama, CSV export ve gelişmiş analizlerle markanı profesyonel seviyede koruyorsun.'
+            : currentPlan === 'pro'
+            ? '🔥 Pro plan ile sahtecilik tespiti, email uyarıları ve gelişmiş analizlerle ürünlerini aktif olarak koruyorsun.'
+            : currentPlan === 'starter'
+            ? '📦 Starter plan ile doğrulama sistemine giriş yaptın. İşini büyütmek için üst planlara geçebilirsin.'
+            : `🆓 Ücretsiz plan ile ${limit ?? 0} ürün limitin bulunur. Daha fazla özellik için planını yükseltebilirsin.`}
+        </div>
         </div>
 
         <div
