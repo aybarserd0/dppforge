@@ -916,27 +916,44 @@ export default async function AdminPage({
           <div style={{ marginTop: 10 }}>{planBadge(currentPlan)}</div>
         </div>
         <div
-           style={{
-           display: 'flex',
-           gap: 10,
-           alignItems: 'center',
-           flexWrap: 'wrap',
+  style={{
+    display: 'flex',
+    gap: 10,
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  }}
+>
+  {currentPlan === 'business' || currentPlan === 'enterprise' ? (
+    <a
+      href="/api/export/csv"
+      style={{
+        padding: '10px 16px',
+        borderRadius: 12,
+        background: 'rgba(34,211,238,0.15)',
+        border: '1px solid rgba(34,211,238,0.4)',
+        color: '#cffafe',
+        fontWeight: 700,
+        textDecoration: 'none',
       }}
     >
-  <a
-    href="/api/export/csv"
-    style={{
-      padding: '10px 16px',
-      borderRadius: 12,
-      background: 'rgba(34,211,238,0.15)',
-      border: '1px solid rgba(34,211,238,0.4)',
-      color: '#cffafe',
-      fontWeight: 700,
-      textDecoration: 'none',
-    }}
-  >
-    📥 CSV indir
-  </a>
+      📥 CSV indir
+    </a>
+  ) : (
+    <Link
+      href="/admin/upgrade"
+      style={{
+        padding: '10px 16px',
+        borderRadius: 12,
+        background: 'rgba(245,158,11,0.14)',
+        border: '1px solid rgba(245,158,11,0.35)',
+        color: '#fde68a',
+        fontWeight: 800,
+        textDecoration: 'none',
+      }}
+    >
+      📊 CSV için Business’a geç
+    </Link>
+  )}
 </div>
       </div>
 
