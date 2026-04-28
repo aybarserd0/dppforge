@@ -5,7 +5,7 @@ import { requireAdminContext } from '@/lib/auth/adminGuard'
 
 export const dynamic = 'force-dynamic'
 
-type UpgradePlan = 'pro' | 'enterprise'
+type UpgradePlan = 'starter' | 'pro' | 'business' | 'enterprise'
 
 function supabaseService() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -22,7 +22,9 @@ function supabaseService() {
 
 function normalizePlan(value: string | null): UpgradePlan | null {
   const v = String(value ?? '').trim().toLowerCase()
+  if (v === 'starter') return 'starter'
   if (v === 'pro') return 'pro'
+  if (v === 'business') return 'business'
   if (v === 'enterprise') return 'enterprise'
   return null
 }
@@ -77,7 +79,71 @@ function buildCheckoutFormBody(params: {
 }) {
   const { plan, conversationId, callbackUrl } = params
 
-  if (plan !== 'pro') return null
+  const priceMap = {
+  starter: '1990.00',
+  pro: '4990.00',
+  business: '9990.00',
+}
+
+const nameMap = {
+  starter: 'DPPForge Starter Plan',
+  pro: 'DPPForge Pro Plan',
+  business: 'DPPForge Business Plan',
+}
+
+if (plan === 'enterprise') return null
+
+const price = priceMap[plan]
+
+return {
+  locale: 'tr',
+  conversationId,
+  price,
+  paidPrice: price,
+  currency: 'TRY',
+  basketId: `basket-${conversationId}`,
+  paymentGroup: 'PRODUCT',
+  callbackUrl,
+  enabledInstallments: [1],
+  buyer: {
+    id: conversationId,
+    name: 'DPPForge',
+    surname: 'Customer',
+    gsmNumber: '+905350000000',
+    email: 'test@example.com',
+    identityNumber: '11111111111',
+    lastLoginDate: '2026-01-01 00:00:00',
+    registrationDate: '2026-01-01 00:00:00',
+    registrationAddress: 'Ankara',
+    ip: '127.0.0.1',
+    city: 'Ankara',
+    country: 'Turkey',
+    zipCode: '06000',
+  },
+  shippingAddress: {
+    contactName: 'DPPForge Customer',
+    city: 'Ankara',
+    country: 'Turkey',
+    address: 'Ankara',
+    zipCode: '06000',
+  },
+  billingAddress: {
+    contactName: 'DPPForge Customer',
+    city: 'Ankara',
+    country: 'Turkey',
+    address: 'Ankara',
+    zipCode: '06000',
+  },
+  basketItems: [
+    {
+      id: `dppforge-${plan}`,
+      name: nameMap[plan],
+      category1: 'SaaS',
+      itemType: 'VIRTUAL',
+      price,
+    },
+  ],
+}
 
   return {
     locale: 'tr',
