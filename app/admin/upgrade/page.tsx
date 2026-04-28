@@ -11,7 +11,7 @@ type SearchParams = Promise<{
   reason?: string
 }>
 
-type PlanView = 'free' | 'pro' | 'enterprise'
+type PlanView = 'free' | 'starter' | 'pro' | 'business' | 'enterprise'
 
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -40,16 +40,16 @@ function cardStyle(featured = false): CSSProperties {
   return {
     borderRadius: 18,
     border: featured
-      ? '1px solid rgba(59,130,246,0.45)'
+      ? '1px solid rgba(34,211,238,0.45)'
       : '1px solid rgba(255,255,255,0.10)',
     background: featured
-      ? 'linear-gradient(180deg, rgba(37,99,235,0.14), rgba(255,255,255,0.04))'
+      ? 'linear-gradient(180deg, rgba(34,211,238,0.14), rgba(255,255,255,0.04))'
       : 'rgba(255,255,255,0.04)',
     padding: 20,
     boxShadow: featured
-      ? '0 16px 40px rgba(37,99,235,0.18)'
+      ? '0 16px 40px rgba(34,211,238,0.16)'
       : '0 10px 30px rgba(0,0,0,0.18)',
-    minHeight: 420,
+    minHeight: 460,
     display: 'flex',
     flexDirection: 'column',
   }
@@ -62,10 +62,10 @@ function buttonPrimary(): CSSProperties {
     justifyContent: 'center',
     padding: '12px 14px',
     borderRadius: 12,
-    background: '#2563eb',
-    color: '#fff',
+    background: '#22d3ee',
+    color: '#08111f',
     textDecoration: 'none',
-    fontWeight: 800,
+    fontWeight: 900,
     border: '1px solid rgba(255,255,255,0.10)',
     cursor: 'pointer',
   }
@@ -114,64 +114,80 @@ function featureItemStyle(): CSSProperties {
 function normalizePlan(value?: string | null): PlanView {
   const v = String(value ?? 'free').trim().toLowerCase()
   if (v === 'enterprise') return 'enterprise'
+  if (v === 'business') return 'business'
   if (v === 'pro') return 'pro'
+  if (v === 'starter') return 'starter'
   return 'free'
 }
 
 function normalizeRequiredPlan(value?: string): PlanView {
   const v = String(value ?? 'pro').trim().toLowerCase()
   if (v === 'enterprise') return 'enterprise'
+  if (v === 'business') return 'business'
+  if (v === 'starter') return 'starter'
   if (v === 'free') return 'free'
   return 'pro'
 }
 
+function planRank(plan: PlanView) {
+  const ranks: Record<PlanView, number> = {
+    free: 0,
+    starter: 1,
+    pro: 2,
+    business: 3,
+    enterprise: 4,
+  }
+
+  return ranks[plan]
+}
+
 function getPlanLimit(plan: PlanView) {
   if (plan === 'enterprise') return null
-  if (plan === 'pro') return 20
-  return 3
+  if (plan === 'business') return 100
+  if (plan === 'pro') return 25
+  if (plan === 'starter') return 5
+  return 1
 }
 
 function planBadgeStyle(text: PlanView): CSSProperties {
-  if (text === 'pro') {
-    return {
-      display: 'inline-flex',
-      alignItems: 'center',
-      padding: '4px 10px',
-      borderRadius: 999,
-      background: 'rgba(59,130,246,0.18)',
-      border: '1px solid rgba(59,130,246,0.35)',
+  const colors: Record<PlanView, { bg: string; border: string; color: string }> = {
+    free: {
+      bg: 'rgba(255,255,255,0.06)',
+      border: 'rgba(255,255,255,0.12)',
+      color: '#e6e6e6',
+    },
+    starter: {
+      bg: 'rgba(59,130,246,0.14)',
+      border: 'rgba(59,130,246,0.35)',
       color: '#bfdbfe',
-      fontSize: 12,
-      fontWeight: 900,
-      letterSpacing: 0.4,
-      textTransform: 'uppercase',
-    }
+    },
+    pro: {
+      bg: 'rgba(34,211,238,0.14)',
+      border: 'rgba(34,211,238,0.35)',
+      color: '#cffafe',
+    },
+    business: {
+      bg: 'rgba(245,158,11,0.14)',
+      border: 'rgba(245,158,11,0.35)',
+      color: '#fde68a',
+    },
+    enterprise: {
+      bg: 'rgba(168,85,247,0.18)',
+      border: 'rgba(168,85,247,0.35)',
+      color: '#e9d5ff',
+    },
   }
 
-  if (text === 'enterprise') {
-    return {
-      display: 'inline-flex',
-      alignItems: 'center',
-      padding: '4px 10px',
-      borderRadius: 999,
-      background: 'rgba(168,85,247,0.18)',
-      border: '1px solid rgba(168,85,247,0.35)',
-      color: '#e9d5ff',
-      fontSize: 12,
-      fontWeight: 900,
-      letterSpacing: 0.4,
-      textTransform: 'uppercase',
-    }
-  }
+  const c = colors[text]
 
   return {
     display: 'inline-flex',
     alignItems: 'center',
     padding: '4px 10px',
     borderRadius: 999,
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    color: '#e6e6e6',
+    background: c.bg,
+    border: `1px solid ${c.border}`,
+    color: c.color,
     fontSize: 12,
     fontWeight: 900,
     letterSpacing: 0.4,
@@ -184,7 +200,7 @@ function reasonText(reason?: string) {
     return 'Mevcut planının ürün limiti dolduğu için yükseltme gerekiyor.'
   }
   if (reason === 'export') {
-    return 'CSV export özelliği için daha yüksek plan gerekiyor.'
+    return 'CSV export özelliği için Business veya Enterprise plan gerekir.'
   }
   if (reason === 'premium_feature') {
     return 'Bu özellik mevcut planında kapalı.'
@@ -192,13 +208,11 @@ function reasonText(reason?: string) {
   if (reason === 'analytics') {
     return 'Gelişmiş analitik için daha yüksek plan gerekiyor.'
   }
-  return 'Daha fazla ürün doğrulamak ve sahte ürünleri tespit etmek için planını yükselt.'
+  return 'Daha fazla ürün doğrulamak, sahte ürünleri tespit etmek ve operasyonunu büyütmek için planını yükselt.'
 }
 
-function getProUpgradeHref(reason?: string) {
-  const params = new URLSearchParams({
-    plan: 'pro',
-  })
+function getUpgradeHref(plan: Exclude<PlanView, 'free' | 'enterprise'>, reason?: string) {
+  const params = new URLSearchParams({ plan })
 
   if (reason) {
     params.set('reason', reason)
@@ -296,19 +310,98 @@ async function getCurrentPlan(): Promise<PlanView> {
 }
 
 function planCardDescription(plan: PlanView) {
-  if (plan === 'enterprise') {
-    return 'Büyük markalar ve kurumsal kullanım'
-  }
-  if (plan === 'pro') {
-    return 'Büyüyen markalar için'
-  }
-  return 'Başlangıç planı'
+  if (plan === 'enterprise') return 'Kurumsal markalar için özel çözüm'
+  if (plan === 'business') return 'Yüksek hacimli operasyonlar için'
+  if (plan === 'pro') return 'Sahtecilik tespiti isteyen markalar için'
+  if (plan === 'starter') return 'Küçük markalar için giriş planı'
+  return 'Başlangıç ve deneme planı'
 }
 
 function planPrice(plan: PlanView) {
-  if (plan === 'enterprise') return 'Teklif usulü'
-  if (plan === 'pro') return '₺299/ay'
+  if (plan === 'enterprise') return 'Özel fiyat'
+  if (plan === 'business') return '₺9.990/ay'
+  if (plan === 'pro') return '₺4.990/ay'
+  if (plan === 'starter') return '₺1.990/ay'
   return '₺0'
+}
+
+function PlanCard({
+  plan,
+  currentPlan,
+  requiredPlan,
+  title,
+  features,
+  cta,
+  href,
+  featured,
+}: {
+  plan: PlanView
+  currentPlan: PlanView
+  requiredPlan: PlanView
+  title: string
+  features: string[]
+  cta?: string
+  href?: string
+  featured?: boolean
+}) {
+  const isCurrent = currentPlan === plan
+  const isHigherActive = planRank(currentPlan) > planRank(plan)
+  const isRequired = requiredPlan === plan
+
+  return (
+    <div style={cardStyle(featured || isCurrent || isRequired)}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: 10,
+          alignItems: 'center',
+          marginBottom: 12,
+        }}
+      >
+        <h2 style={{ margin: 0, fontSize: 24 }}>{title}</h2>
+        <span style={planBadgeStyle(plan)}>
+          {isCurrent ? 'aktif plan' : isRequired ? 'gerekli plan' : plan}
+        </span>
+      </div>
+
+      <div style={{ fontSize: 34, fontWeight: 900, marginBottom: 10 }}>
+        {planPrice(plan)}
+      </div>
+
+      <div style={{ opacity: 0.7, marginBottom: 14 }}>
+        {planCardDescription(plan)}
+      </div>
+
+      <div style={{ display: 'grid', gap: 6, marginBottom: 18 }}>
+        {features.map((feature) => (
+          <div key={feature} style={featureItemStyle()}>
+            • {feature}
+          </div>
+        ))}
+      </div>
+
+      <div style={{ marginTop: 'auto', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        {isCurrent ? (
+          <Link href="/admin" style={buttonSuccess()}>
+            ✅ Bu plan aktif
+          </Link>
+        ) : isHigherActive ? (
+          <Link href="/admin" style={buttonSuccess()}>
+            ✅ Daha yüksek plan aktif
+          </Link>
+        ) : href ? (
+          <a href={href} style={plan === 'enterprise' ? buttonSecondary() : buttonPrimary()}>
+            {cta}
+          </a>
+        ) : (
+          <div style={{ opacity: 0.78, fontSize: 13 }}>
+            Başlangıç ve deneme süreci için uygun.
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
 export default async function UpgradePage({
@@ -321,21 +414,13 @@ export default async function UpgradePage({
   const requiredPlan = normalizeRequiredPlan(required)
   const currentPlan = await getCurrentPlan()
   const currentLimit = getPlanLimit(currentPlan)
-  const proUpgradeHref = getProUpgradeHref(reason)
   const enterpriseMailHref = getEnterpriseMailHref()
 
-  const alreadyEnough =
-    currentPlan === 'enterprise' ||
-    (currentPlan === 'pro' && requiredPlan !== 'enterprise')
+  const alreadyEnough = planRank(currentPlan) >= planRank(requiredPlan)
 
   return (
     <main style={pageStyle()}>
-      <div
-        style={{
-          maxWidth: 1180,
-          margin: '0 auto',
-        }}
-      >
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
         <div
           style={{
             display: 'flex',
@@ -353,7 +438,7 @@ export default async function UpgradePage({
 
             <h1 style={{ fontSize: 34, fontWeight: 900, margin: 0 }}>
               {alreadyEnough
-                ? 'Planın zaten uygun görünüyor'
+                ? 'Planın bu özellik için uygun'
                 : '🚀 Hesabını büyütmeye hazır mısın?'}
             </h1>
 
@@ -397,7 +482,7 @@ export default async function UpgradePage({
           <div style={{ fontSize: 14, opacity: 0.95, lineHeight: 1.6 }}>
             {alreadyEnough
               ? 'Hesabın bu aksiyon için yeterli planda görünüyor. Admin paneline dönüp akışa devam edebilirsin.'
-              : 'Sistem bu isteği durdurdu ve seni upgrade sayfasına yönlendirdi. Bu yapı artık DPPForge içinde gerçek SaaS plan kontrolünün aktif olduğunu gösterir.'}
+              : 'Sistem bu isteği durdurdu ve seni upgrade sayfasına yönlendirdi. Bu yapı DPPForge içinde gerçek SaaS plan kontrolünün aktif olduğunu gösterir.'}
           </div>
         </div>
 
@@ -441,17 +526,25 @@ export default async function UpgradePage({
             </Link>
 
             {currentPlan === 'free' ? (
-              <a href={proUpgradeHref} style={buttonPrimary()}>
-                💰 Pro’ya geç
+              <a href={getUpgradeHref('starter', reason)} style={buttonPrimary()}>
+                💰 Starter’a geç
+              </a>
+            ) : currentPlan === 'starter' ? (
+              <a href={getUpgradeHref('pro', reason)} style={buttonPrimary()}>
+                🚀 Pro’ya geç
               </a>
             ) : currentPlan === 'pro' ? (
-              <Link href="/admin/analytics" style={buttonSuccess()}>
-                🚀 Pro aktif
-              </Link>
-            ) : (
+              <a href={getUpgradeHref('business', reason)} style={buttonPrimary()}>
+                📊 Business’a geç
+              </a>
+            ) : currentPlan === 'business' ? (
               <a href={enterpriseMailHref} style={buttonSecondary()}>
                 🤝 Enterprise iletişim
               </a>
+            ) : (
+              <Link href="/admin" style={buttonSuccess()}>
+                ✅ Enterprise aktif
+              </Link>
             )}
           </div>
         </div>
@@ -459,174 +552,86 @@ export default async function UpgradePage({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
             gap: 16,
           }}
         >
-          <div style={cardStyle(currentPlan === 'free')}>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: 10,
-                alignItems: 'center',
-                marginBottom: 12,
-              }}
-            >
-              <h2 style={{ margin: 0, fontSize: 24 }}>Free</h2>
-              <span style={planBadgeStyle('free')}>
-                {currentPlan === 'free' ? 'aktif plan' : 'free'}
-              </span>
-            </div>
+          <PlanCard
+            plan="free"
+            currentPlan={currentPlan}
+            requiredPlan={requiredPlan}
+            title="Free"
+            features={[
+              '1 ürün',
+              '50 okutma',
+              'Temel doğrulama',
+              'Deneme kullanımı',
+            ]}
+          />
 
-            <div style={{ fontSize: 34, fontWeight: 900, marginBottom: 10 }}>
-              {planPrice('free')}
-            </div>
-            <div style={{ opacity: 0.7, marginBottom: 14 }}>
-              {planCardDescription('free')}
-            </div>
+          <PlanCard
+            plan="starter"
+            currentPlan={currentPlan}
+            requiredPlan={requiredPlan}
+            title="Starter"
+            features={[
+              '5 ürün',
+              '1.000 okutma / ay',
+              'QR doğrulama',
+              'Temel analiz',
+            ]}
+            cta="Starter’a geç"
+            href={getUpgradeHref('starter', reason)}
+          />
 
-            <div style={{ display: 'grid', gap: 6, marginBottom: 18 }}>
-              <div style={featureItemStyle()}>• 3 ürün limiti</div>
-              <div style={featureItemStyle()}>• Temel doğrulama sayfası</div>
-              <div style={featureItemStyle()}>• Sınırlı kullanım</div>
-              <div style={featureItemStyle()}>• Gelişmiş fraud araçları kapalı</div>
-            </div>
+          <PlanCard
+            plan="pro"
+            currentPlan={currentPlan}
+            requiredPlan={requiredPlan}
+            title="Pro"
+            featured
+            features={[
+              '25 ürün',
+              '10.000 okutma / ay',
+              'Sahtecilik tespiti',
+              'Email uyarıları',
+              'Gelişmiş analiz',
+            ]}
+            cta="Hemen Pro’ya geç"
+            href={getUpgradeHref('pro', reason)}
+          />
 
-            <div style={{ marginTop: 'auto' }}>
-              {currentPlan === 'free' ? (
-                <div style={{ opacity: 0.78, fontSize: 13 }}>
-                  Şu anda bu planı kullanıyorsun.
-                </div>
-              ) : (
-                <div style={{ opacity: 0.78, fontSize: 13 }}>
-                  Başlangıç ve deneme süreci için uygun.
-                </div>
-              )}
-            </div>
-          </div>
+          <PlanCard
+            plan="business"
+            currentPlan={currentPlan}
+            requiredPlan={requiredPlan}
+            title="Business"
+            features={[
+              '100 ürün',
+              '50.000 okutma / ay',
+              'CSV export',
+              'Gelişmiş raporlama',
+              'Öncelikli destek',
+            ]}
+            cta="Business’a geç"
+            href={getUpgradeHref('business', reason)}
+          />
 
-          <div style={cardStyle(requiredPlan === 'pro' || currentPlan === 'pro')}>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: 10,
-                alignItems: 'center',
-                marginBottom: 12,
-              }}
-            >
-              <h2 style={{ margin: 0, fontSize: 24 }}>Pro</h2>
-              <span style={planBadgeStyle('pro')}>
-                {currentPlan === 'pro'
-                  ? 'aktif plan'
-                  : requiredPlan === 'pro'
-                  ? 'önerilen'
-                  : 'pro'}
-              </span>
-            </div>
-
-            <div style={{ fontSize: 34, fontWeight: 900, marginBottom: 10 }}>
-              {planPrice('pro')}
-            </div>
-            <div style={{ opacity: 0.7, marginBottom: 14 }}>
-              {planCardDescription('pro')}
-            </div>
-
-            <div style={{ display: 'grid', gap: 6, marginBottom: 18 }}>
-              <div style={featureItemStyle()}>• Sınırsız ürün</div>
-              <div style={featureItemStyle()}>• Sınırsız QR okutma</div>
-              <div style={featureItemStyle()}>• 🔥 Sahte ürün tespiti (Fraud detection)</div>
-              <div style={featureItemStyle()}>• ⚠️ Anlık email alarm sistemi</div>
-              <div style={featureItemStyle()}>• 📊 Gelişmiş analiz paneli</div>
-             <div style={featureItemStyle()}>• 📁 CSV / PDF export</div>
-            </div>
-            <div style={{ marginTop: 10, fontSize: 12, opacity: 0.8 }}>
-            💡 Tek bir sahte ürünü yakalamak bile bu planın maliyetini fazlasıyla karşılar.
-            </div>
-
-            <div
-              style={{
-                marginTop: 'auto',
-                display: 'flex',
-                gap: 10,
-                flexWrap: 'wrap',
-              }}
-            >
-              {currentPlan === 'pro' ? (
-                <Link href="/admin" style={buttonSuccess()}>
-                  ✅ Pro plan aktif
-                </Link>
-              ) : currentPlan === 'enterprise' ? (
-                <Link href="/admin" style={buttonSuccess()}>
-                  ✅ Daha yüksek plan aktif
-                </Link>
-              ) : (
-                <a href={proUpgradeHref} style={buttonPrimary()}>
-                  🚀 Hemen Pro’ya geç
-                </a>
-              )}
-            </div>
-          </div>
-
-          <div
-            style={cardStyle(
-              requiredPlan === 'enterprise' || currentPlan === 'enterprise'
-            )}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: 10,
-                alignItems: 'center',
-                marginBottom: 12,
-              }}
-            >
-              <h2 style={{ margin: 0, fontSize: 24 }}>Enterprise</h2>
-              <span style={planBadgeStyle('enterprise')}>
-                {currentPlan === 'enterprise'
-                  ? 'aktif plan'
-                  : requiredPlan === 'enterprise'
-                  ? 'gerekli plan'
-                  : 'enterprise'}
-              </span>
-            </div>
-
-            <div style={{ fontSize: 34, fontWeight: 900, marginBottom: 10 }}>
-              {planPrice('enterprise')}
-            </div>
-            <div style={{ opacity: 0.7, marginBottom: 14 }}>
-              {planCardDescription('enterprise')}
-            </div>
-
-            <div style={{ display: 'grid', gap: 6, marginBottom: 18 }}>
-              <div style={featureItemStyle()}>• Sınırsız ürün</div>
-              <div style={featureItemStyle()}>• Export ve raporlama</div>
-              <div style={featureItemStyle()}>• Premium fraud modülleri</div>
-              <div style={featureItemStyle()}>• API / özel entegrasyon</div>
-              <div style={featureItemStyle()}>• Kurumsal onboarding</div>
-            </div>
-
-            <div
-              style={{
-                marginTop: 'auto',
-                display: 'flex',
-                gap: 10,
-                flexWrap: 'wrap',
-              }}
-            >
-              {currentPlan === 'enterprise' ? (
-                <Link href="/admin" style={buttonSuccess()}>
-                  ✅ Enterprise aktif
-                </Link>
-              ) : (
-                <a href={enterpriseMailHref} style={buttonSecondary()}>
-                  Enterprise satış ekibiyle konuş
-                </a>
-              )}
-            </div>
-          </div>
+          <PlanCard
+            plan="enterprise"
+            currentPlan={currentPlan}
+            requiredPlan={requiredPlan}
+            title="Enterprise"
+            features={[
+              'API erişimi',
+              'Özel entegrasyon',
+              'Yüksek hacim',
+              'Dedicated destek',
+              'Kurumsal onboarding',
+            ]}
+            cta="Enterprise satış ekibiyle konuş"
+            href={enterpriseMailHref}
+          />
         </div>
 
         <div
@@ -640,9 +645,10 @@ export default async function UpgradePage({
         >
           <div style={{ fontWeight: 900, marginBottom: 8 }}>Not</div>
           <div style={{ fontSize: 14, opacity: 0.8, lineHeight: 1.6 }}>
-            Pro butonu backend ödeme route’una gider. Bu route iyzico ödeme
-            sayfası oluşturur, callback ile sonucu alır ve verify aşamasında
-            yalnızca gerçek başarılı ödeme varsa hesabı yükseltir.
+            Ödeme butonları backend ödeme route’una gider. Route seçilen plana
+            göre ödeme linki oluşturur, callback ile sonucu alır ve verify
+            aşamasında yalnızca gerçek başarılı ödeme varsa hesabı yükseltir.
+            CSV export sadece Business ve Enterprise planlarda aktiftir.
           </div>
         </div>
       </div>
