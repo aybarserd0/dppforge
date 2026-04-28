@@ -411,11 +411,15 @@ function planSummaryCard(params: {
           </div>
 
           <div style={{ marginTop: 12, fontSize: 20, fontWeight: 900 }}>
-            {isEnterprise
+             {currentPlan === 'enterprise'
               ? 'Kurumsal plan aktif'
-              : isPro
-              ? 'Pro plan aktif'
-              : 'Ücretsiz plan aktif'}
+               : currentPlan === 'business'
+               ? 'Business plan aktif'
+               : currentPlan === 'pro'
+                ? 'Pro plan aktif'
+                : currentPlan === 'starter'
+                 ? 'Starter plan aktif'
+                  : 'Ücretsiz plan aktif'}
           </div>
 
           <div
