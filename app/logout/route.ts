@@ -8,6 +8,6 @@ export async function POST(req: NextRequest) {
 
   await supabase.auth.signOut()
 
-  const res = NextResponse.redirect(new URL('/login', req.url))
+  const res = NextResponse.redirect(new URL('/', req.url))
   return applyCookies(res)
 }
