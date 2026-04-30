@@ -107,17 +107,32 @@ function SignupForm() {
             </div>
 
             <h1 className="max-w-2xl text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
-              Ürünlerinizi doğrulamak ve sahtecilik riskini izlemek için hesabınızı oluşturun.
+              Sahte ürünleri 24 saat içinde tespit edin ve markanızı koruyun.
             </h1>
 
             <p className="mt-5 max-w-xl text-base leading-8 text-white/62">
-              Ücretsiz başlayın, ürünlerinizi ekleyin, QR doğrulama sayfaları
+              QR kod ile ürünlerinizi doğrulayın, sahtecilik girişimlerini anında tespit edin ve müşterilerinizin ürünlerinizi nereden okuttuğunu görün.
               oluşturun ve okutma hareketlerini tek panelden takip edin.
             </p>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              <div className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5">
+  <div className="text-sm text-cyan-300 font-semibold mb-2">
+    Ücretsiz Plan
+  </div>
+
+  <ul className="text-sm text-white/80 space-y-1">
+    <li>• 1 ürün ekleme</li>
+    <li>• 50 okutma hakkı</li>
+    <li>• QR doğrulama sayfası</li>
+  </ul>
+
+  <div className="mt-3 text-xs text-white/50">
+    İstediğin zaman Pro’ya geçebilirsin
+  </div>
+</div>
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/75">
-                3 ürün ücretsiz
+                1 ürün / 50 okutma
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/75">
                 Kredi kartı gerekmez
