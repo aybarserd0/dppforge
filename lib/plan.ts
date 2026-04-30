@@ -79,6 +79,85 @@ const rank: Record<PlanType, number> = {
     canUseMultiUser: true,
   },
 }
+
+// ================= UI DATA (SATIŞ TARAFI) =================
+
+export type PlanUI = {
+  name: string
+  price: number
+  priceLabel: string
+  description: string
+  features: string[]
+  highlight?: boolean
+}
+
+export const PLAN_UI: Record<PlanType, PlanUI> = {
+  free: {
+    name: 'Free',
+    price: 0,
+    priceLabel: 'Ücretsiz',
+    description: 'Başlamak için ideal',
+    features: [
+      '1 ürün',
+      '50 okutma',
+      'Temel doğrulama'
+    ],
+  },
+
+  starter: {
+    name: 'Starter',
+    price: 299,
+    priceLabel: '₺299 / ay',
+    description: 'Küçük markalar için',
+    features: [
+      '5 ürün',
+      '1.000 okutma',
+    ],
+  },
+
+  pro: {
+    name: 'Pro',
+    price: 999,
+    priceLabel: '₺999 / ay',
+    description: 'Büyüyen markalar için',
+    features: [
+      '25 ürün',
+      '10.000 okutma',
+      'Email alert',
+      'Analitik'
+    ],
+    highlight: true,
+  },
+
+  business: {
+    name: 'Business',
+    price: 2999,
+    priceLabel: '₺2999 / ay',
+    description: 'Operasyonel kullanım',
+    features: [
+      '100 ürün',
+      '50.000 okutma',
+      'CSV export',
+      'Gelişmiş rapor'
+    ],
+  },
+
+  enterprise: {
+    name: 'Enterprise',
+    price: 0,
+    priceLabel: 'Özel fiyat',
+    description: 'Kurumsal çözümler',
+    features: [
+      'Sınırsız ürün',
+      'Sınırsız okutma',
+      'API erişimi',
+      'White-label',
+      'Multi-user'
+    ],
+  },
+}
+
+
 export function normalizePlan(p: unknown): PlanType {
   const value = String(p ?? '').trim().toLowerCase()
 
