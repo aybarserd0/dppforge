@@ -115,33 +115,50 @@ function SignupForm() {
               oluşturun ve okutma hareketlerini tek panelden takip edin.
             </p>
 
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              <div className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5">
-  <div className="text-sm text-cyan-300 font-semibold mb-2">
-    Ücretsiz Plan
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+
+  {/* FREE */}
+  <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-sm text-white/80">
+    <div className="mb-2 font-semibold text-cyan-300">Free</div>
+    <ul className="space-y-1">
+      <li>• 1 ürün</li>
+      <li>• 50 okutma</li>
+      <li>• QR doğrulama sayfası</li>
+    </ul>
+    <div className="mt-3 text-xs text-white/50">
+      Kredi kartı gerekmez
+    </div>
   </div>
 
-  <ul className="text-sm text-white/80 space-y-1">
-    <li>• 1 ürün ekleme</li>
-    <li>• 50 okutma hakkı</li>
-    <li>• QR doğrulama sayfası</li>
-  </ul>
-
-  <div className="mt-3 text-xs text-white/50">
-    İstediğin zaman Pro’ya geçebilirsin
+  {/* PRO */}
+  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/80">
+    <div className="mb-2 font-semibold text-white">Pro</div>
+    <ul className="space-y-1">
+      <li>• 25 ürün</li>
+      <li>• 10.000 okutma</li>
+      <li>• Email alert</li>
+      <li>• Analitik panel</li>
+    </ul>
+    <div className="mt-3 font-semibold text-cyan-300">
+      ₺999 / ay
+    </div>
   </div>
+
+  {/* BUSINESS */}
+  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/80">
+    <div className="mb-2 font-semibold text-white">Business</div>
+    <ul className="space-y-1">
+      <li>• 100 ürün</li>
+      <li>• 50.000 okutma</li>
+      <li>• CSV export</li>
+      <li>• Gelişmiş rapor</li>
+    </ul>
+    <div className="mt-3 font-semibold text-cyan-300">
+      ₺2999 / ay
+    </div>
+  </div>
+
 </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/75">
-                1 ürün / 50 okutma
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/75">
-                Kredi kartı gerekmez
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/75">
-                Pro’ya istediğin zaman geç
-              </div>
-            </div>
-          </div>
 
           <form
             onSubmit={handleSignup}
