@@ -191,7 +191,7 @@ export default async function AdminAlarmsPage() {
   const { data: userProductsRaw, error: userProductsErr } = await supabase
     .from('products')
     .select('id, name_tr, sku')
-    .eq('user_id', user.id)
+    .eq('account_id', user.id)
 
   if (userProductsErr) {
     return <ErrorBox title="Ürün verisi hatası" error={userProductsErr} />
