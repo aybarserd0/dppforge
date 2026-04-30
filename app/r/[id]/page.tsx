@@ -124,6 +124,16 @@ function translateReason(r: string) {
   return r
 }
 
+function translateReviewState(state?: string | null) {
+  if (state === 'approved') return 'Onaylandı'
+  if (state === 'open') return 'Açık'
+  if (state === 'in_review') return 'İncelemede'
+  if (state === 'under_review') return 'İncelemede'
+  if (state === 'rejected') return 'Reddedildi'
+
+  return state ?? '-'
+}
+
 export default async function PublicReportPage({
   params,
 }: {
@@ -482,7 +492,7 @@ export default async function PublicReportPage({
                 }}
               >
                 <div>Yayınlandı: {page.published_at ? 'Evet' : 'Hayır'}</div>
-                <div>İnceleme Durumu: {page.review_state ?? '-'}</div>
+                <div>İnceleme Durumu: {translateReviewState(page.review_state)}</div>
                 <div>Son Okutma: {summary?.last_scan_at ?? '-'}</div>
                 <div>
                   Şüpheli Durum: {summary?.is_suspicious ? 'Evet' : 'Hayır'}

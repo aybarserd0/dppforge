@@ -25,7 +25,7 @@ export default function CopyLinkButton() {
         fontWeight: 600,
       }}
     >
-      {copied ? '✔ Copied' : '🔗 Copy Link'}
+      {copied ? '✔ Kopyalandı' : '🔗 Bağlantıyı Kopyala'}
     </button>
   )
 }

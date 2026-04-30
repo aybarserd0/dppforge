@@ -354,7 +354,7 @@ export default async function ReportPage({
               </span>
 
               <div style={{ fontSize: 12, opacity: 0.6 }}>
-                {new Date().toLocaleDateString()}
+                {new Date().toLocaleDateString('tr-TR')}
               </div>
 
               <div className="no-print">
