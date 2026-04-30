@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic'
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
   return createClient(url, serviceKey, {
     auth: { persistSession: false },
   })
@@ -17,14 +18,11 @@ function getSupabaseAdmin() {
 async function requireAdmin() {
   const supabase = await createSupabaseServerClient()
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  if (!session) {
-    redirect('/login')
-  }
-
-  return session
+  if (!user) redirect('/login')
+  return user
 }
 
 type AnalyticsRow = {
@@ -45,6 +43,14 @@ type ScanRow = {
   ip_hash: string | null
   country: string | null
   scanned_at: string
+}
+
+type ProductRow = {
+  id: string
+}
+
+type PageRow = {
+  id: string
 }
 
 function headerButtonStyle() {
@@ -69,8 +75,7 @@ function cardStyle() {
     borderRadius: 18,
     padding: 18,
     boxShadow: '0 10px 30px rgba(0,0,0,0.18)',
-
-     minHeight: 120,
+    minHeight: 120,
   }
 }
 
@@ -116,69 +121,93 @@ function badgeStyle(suspicious: boolean) {
   }
 }
 
+function ErrorBox({ title, error }: { title: string; error: unknown }) {
+  return (
+    <div
+      style={{
+        padding: 40,
+        fontFamily: 'system-ui',
+        background: '#0b0f17',
+        color: '#e6e6e6',
+        minHeight: '100vh',
+      }}
+    >
+      <h1>{title}</h1>
+      <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, opacity: 0.8 }}>
+        {JSON.stringify(error, null, 2)}
+      </pre>
+    </div>
+  )
+}
+
 export default async function AdminAnalyticsPage() {
-  await requireAdmin()
+  const user = await requireAdmin()
   const supabase = getSupabaseAdmin()
 
   const sinceIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 
-  const [analyticsRes, scansRes] = await Promise.all([
-    supabase
-      .from('dpp_analytics_24h')
-      .select('*')
-      .order('scans_24h', { ascending: false }),
-    supabase
-      .from('dpp_scans')
-      .select('page_id, ip_hash, country, scanned_at')
-      .gte('scanned_at', sinceIso)
-      .order('scanned_at', { ascending: false }),
-  ])
+  const { data: productsRaw, error: productsErr } = await supabase
+    .from('products')
+    .select('id')
+    .eq('account_id', user.id)
 
-  if (analyticsRes.error) {
-    return (
-      <div
-        style={{
-          padding: 40,
-          fontFamily: 'system-ui',
-          background: '#0b0f17',
-          color: '#e6e6e6',
-          minHeight: '100vh',
-        }}
-      >
-        <h1>Analytics Error</h1>
-        <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, opacity: 0.8 }}>
-          {JSON.stringify(analyticsRes.error, null, 2)}
-        </pre>
-      </div>
-    )
+  if (productsErr) {
+    return <ErrorBox title="Ürün verisi hatası" error={productsErr} />
   }
 
-  if (scansRes.error) {
-    return (
-      <div
-        style={{
-          padding: 40,
-          fontFamily: 'system-ui',
-          background: '#0b0f17',
-          color: '#e6e6e6',
-          minHeight: '100vh',
-        }}
-      >
-        <h1>Scans Error</h1>
-        <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, opacity: 0.8 }}>
-          {JSON.stringify(scansRes.error, null, 2)}
-        </pre>
-      </div>
-    )
-  }
+  const products = (productsRaw ?? []) as ProductRow[]
+  const productIds = products.map((p) => p.id)
 
-  const analytics = (analyticsRes.data || []) as AnalyticsRow[]
-  const scans = (scansRes.data || []) as ScanRow[]
+  let analytics: AnalyticsRow[] = []
+  let scans: ScanRow[] = []
+
+  if (productIds.length > 0) {
+    const { data: pagesRaw, error: pagesErr } = await supabase
+      .from('public_pages')
+      .select('id')
+      .in('product_id', productIds)
+
+    if (pagesErr) {
+      return <ErrorBox title="Sayfa verisi hatası" error={pagesErr} />
+    }
+
+    const pages = (pagesRaw ?? []) as PageRow[]
+    const pageIds = pages.map((p) => p.id)
+
+    if (pageIds.length > 0) {
+      const [analyticsRes, scansRes] = await Promise.all([
+        supabase
+          .from('dpp_analytics_24h')
+          .select('*')
+          .in('page_id', pageIds)
+          .order('scans_24h', { ascending: false }),
+
+        supabase
+          .from('dpp_scans')
+          .select('page_id, ip_hash, country, scanned_at')
+          .in('page_id', pageIds)
+          .gte('scanned_at', sinceIso)
+          .order('scanned_at', { ascending: false }),
+      ])
+
+      if (analyticsRes.error) {
+        return <ErrorBox title="Analytics Error" error={analyticsRes.error} />
+      }
+
+      if (scansRes.error) {
+        return <ErrorBox title="Scans Error" error={scansRes.error} />
+      }
+
+      analytics = (analyticsRes.data ?? []) as AnalyticsRow[]
+      scans = (scansRes.data ?? []) as ScanRow[]
+    }
+  }
 
   const totalScans24h = scans.length
   const uniqueIps24h = new Set(scans.map((s) => s.ip_hash).filter(Boolean)).size
 
   const countryMap = new Map<string, number>()
+
   for (const scan of scans) {
     const key = scan.country?.trim() || 'Bilinmeyen'
     countryMap.set(key, (countryMap.get(key) || 0) + 1)
@@ -230,15 +259,13 @@ export default async function AdminAnalyticsPage() {
         <div>
           <h1 style={{ margin: 0 }}>📊 Sahtecilik Analitiği</h1>
           <p style={{ opacity: 0.7, marginTop: 8 }}>
-            Son 24 saatlik okutma ve risk görünümü
+            Sadece bu hesaba ait ürünlerin son 24 saatlik okutma ve risk görünümü
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <Link href="/admin" style={headerButtonStyle()}>
-            ← Kontrol Paneli
-          </Link>
-        </div>
+        <Link href="/admin" style={headerButtonStyle()}>
+          ← Kontrol Paneli
+        </Link>
       </div>
 
       <div
@@ -255,7 +282,7 @@ export default async function AdminAnalyticsPage() {
           </div>
           <div style={metricValueStyle()}>{totalScans24h}</div>
           <div style={{ fontSize: 13, opacity: 0.6 }}>
-            Son 24 saatte loglanan tüm okutmalar
+            Son 24 saatte bu hesaba ait okutmalar
           </div>
         </div>
 
@@ -274,9 +301,7 @@ export default async function AdminAnalyticsPage() {
             Benzersiz IP (24s)
           </div>
           <div style={metricValueStyle()}>{uniqueIps24h}</div>
-          <div style={{ fontSize: 13, opacity: 0.6 }}>
-            Benzersiz IP sayısı
-          </div>
+          <div style={{ fontSize: 13, opacity: 0.6 }}>Benzersiz IP sayısı</div>
         </div>
 
         <div style={cardStyle()}>
@@ -310,14 +335,18 @@ export default async function AdminAnalyticsPage() {
             }}
           >
             <h2
-  style={{
-    margin: 0,
-    fontSize: 22,
-    lineHeight: 1.2,
-    wordBreak: 'break-word',
-  }}
->En Riskli Ürünler</h2>
-            <span style={{ opacity: 0.6, fontSize: 13 }}>Son 24 saatlik veri</span>
+              style={{
+                margin: 0,
+                fontSize: 22,
+                lineHeight: 1.2,
+                wordBreak: 'break-word',
+              }}
+            >
+              En Riskli Ürünler
+            </h2>
+            <span style={{ opacity: 0.6, fontSize: 13 }}>
+              Son 24 saatlik veri
+            </span>
           </div>
 
           <div style={{ overflowX: 'auto' }}>
@@ -330,64 +359,22 @@ export default async function AdminAnalyticsPage() {
             >
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      padding: '12px 10px',
-                      opacity: 0.7,
-                      fontWeight: 800,
-                    }}
-                  >
+                  <th style={{ textAlign: 'left', padding: '12px 10px', opacity: 0.7, fontWeight: 800 }}>
                     Ürün
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      padding: '12px 10px',
-                      opacity: 0.7,
-                      fontWeight: 800,
-                    }}
-                  >
+                  <th style={{ textAlign: 'left', padding: '12px 10px', opacity: 0.7, fontWeight: 800 }}>
                     SKU
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      padding: '12px 10px',
-                      opacity: 0.7,
-                      fontWeight: 800,
-                    }}
-                  >
+                  <th style={{ textAlign: 'left', padding: '12px 10px', opacity: 0.7, fontWeight: 800 }}>
                     Okutma
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      padding: '12px 10px',
-                      opacity: 0.7,
-                      fontWeight: 800,
-                    }}
-                  >
+                  <th style={{ textAlign: 'left', padding: '12px 10px', opacity: 0.7, fontWeight: 800 }}>
                     IP
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      padding: '12px 10px',
-                      opacity: 0.7,
-                      fontWeight: 800,
-                    }}
-                  >
+                  <th style={{ textAlign: 'left', padding: '12px 10px', opacity: 0.7, fontWeight: 800 }}>
                     Ülke
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      padding: '12px 10px',
-                      opacity: 0.7,
-                      fontWeight: 800,
-                    }}
-                  >
+                  <th style={{ textAlign: 'left', padding: '12px 10px', opacity: 0.7, fontWeight: 800 }}>
                     Durum
                   </th>
                 </tr>
@@ -396,14 +383,8 @@ export default async function AdminAnalyticsPage() {
               <tbody>
                 {topRiskPages.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={6}
-                      style={{
-                        padding: '16px 10px',
-                        opacity: 0.65,
-                      }}
-                    >
-                      Son 24 saatte analiz edilecek okutma yok.
+                    <td colSpan={6} style={{ padding: '16px 10px', opacity: 0.65 }}>
+                      Bu hesaba ait son 24 saatte analiz edilecek okutma yok.
                     </td>
                   </tr>
                 ) : (
@@ -421,7 +402,9 @@ export default async function AdminAnalyticsPage() {
                         {row.sku || '-'}
                       </td>
                       <td style={{ padding: '14px 10px' }}>{row.scans_24h}</td>
-                      <td style={{ padding: '14px 10px' }}>{row.unique_ips_24h}</td>
+                      <td style={{ padding: '14px 10px' }}>
+                        {row.unique_ips_24h}
+                      </td>
                       <td style={{ padding: '14px 10px' }}>
                         {row.unique_countries_24h}
                       </td>
@@ -450,13 +433,15 @@ export default async function AdminAnalyticsPage() {
             }}
           >
             <h2
-  style={{
-    margin: 0,
-    fontSize: 22,
-    lineHeight: 1.2,
-    wordBreak: 'break-word',
-  }}
->Ülke Dağılımı</h2>
+              style={{
+                margin: 0,
+                fontSize: 22,
+                lineHeight: 1.2,
+                wordBreak: 'break-word',
+              }}
+            >
+              Ülke Dağılımı
+            </h2>
             <span style={{ opacity: 0.6, fontSize: 13 }}>24 saat</span>
           </div>
 
@@ -478,7 +463,9 @@ export default async function AdminAnalyticsPage() {
                   }}
                 >
                   <span style={{ fontSize: 14 }}>{row.country}</span>
-                  <span style={{ fontSize: 14, fontWeight: 900 }}>{row.count}</span>
+                  <span style={{ fontSize: 14, fontWeight: 900 }}>
+                    {row.count}
+                  </span>
                 </div>
               ))
             )}
