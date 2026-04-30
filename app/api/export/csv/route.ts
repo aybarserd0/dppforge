@@ -1,70 +1,92 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
 
+const CSV_HEADER = 'Tarih;Ülke;Ürün Adı;SKU;Ürün Sayfası;Okutma Durumu\n'
+
+function csvResponse(csv: string) {
+  return new NextResponse('\uFEFF' + csv, {
+    headers: {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="dppforge-okutma-raporu.csv"',
+    },
+  })
+}
+
 export async function GET() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const authSupabase = await createSupabaseServerClient()
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+    error: userErr,
+  } = await authSupabase.auth.getUser()
 
-  if (!user) {
-    return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
+  if (userErr || !user) {
+    return NextResponse.json(
+      { ok: false, error: 'unauthorized' },
+      { status: 401 }
+    )
   }
 
-  const { data: products } = await supabase
+  const adminSupabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: { persistSession: false },
+    }
+  )
+
+  const { data: products, error: productsErr } = await adminSupabase
     .from('products')
     .select('id, name_tr, sku')
     .eq('account_id', user.id)
 
-  const productIds = (products ?? []).map((p) => p.id)
-  const productMap = new Map((products ?? []).map((p) => [p.id, p]))
-
-  if (productIds.length === 0) {
-    return new NextResponse('Tarih;Ülke;Ürün Adı;SKU;Ürün Sayfası;Okutma Durumu\n', {
-      headers: {
-        'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': 'attachment; filename="dppforge-okutma-raporu.csv"',
-      },
-    })
+  if (productsErr) {
+    return NextResponse.json(
+      { ok: false, error: productsErr },
+      { status: 500 }
+    )
   }
 
-  const { data: pages } = await supabase
+  const productIds = (products ?? []).map((p) => p.id)
+
+  if (productIds.length === 0) {
+    return csvResponse(CSV_HEADER)
+  }
+
+  const productMap = new Map((products ?? []).map((p) => [p.id, p]))
+
+  const { data: pages, error: pagesErr } = await adminSupabase
     .from('public_pages')
     .select('id, slug, product_id')
     .in('product_id', productIds)
 
-  const pageIds = (pages ?? []).map((p) => p.id)
-  const pageMap = new Map((pages ?? []).map((p) => [p.id, p]))
-
-  if (pageIds.length === 0) {
-    return new NextResponse('Tarih;Ülke;Ürün Adı;SKU;Ürün Sayfası;Okutma Durumu\n', {
-      headers: {
-        'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': 'attachment; filename="dppforge-okutma-raporu.csv"',
-      },
-    })
+  if (pagesErr) {
+    return NextResponse.json({ ok: false, error: pagesErr }, { status: 500 })
   }
 
-  const { data, error } = await supabase
+  const pageIds = (pages ?? []).map((p) => p.id)
+
+  if (pageIds.length === 0) {
+    return csvResponse(CSV_HEADER)
+  }
+
+  const pageMap = new Map((pages ?? []).map((p) => [p.id, p]))
+
+  const { data: scans, error: scansErr } = await adminSupabase
     .from('dpp_scans')
     .select('scanned_at, country, page_id')
     .in('page_id', pageIds)
     .order('scanned_at', { ascending: false })
     .limit(500)
 
-  if (error) {
-    return NextResponse.json({ ok: false, error }, { status: 500 })
+  if (scansErr) {
+    return NextResponse.json({ ok: false, error: scansErr }, { status: 500 })
   }
 
-  const header = 'Tarih;Ülke;Ürün Adı;SKU;Ürün Sayfası;Okutma Durumu\n'
-
-  const rows = (data ?? [])
+  const rows = (scans ?? [])
     .map((row) => {
       const page = pageMap.get(row.page_id)
       const product = page?.product_id ? productMap.get(page.product_id) : null
@@ -84,12 +106,5 @@ export async function GET() {
     })
     .join('\n')
 
-  const csv = header + rows
-
-  return new NextResponse(csv, {
-    headers: {
-      'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': 'attachment; filename="dppforge-okutma-raporu.csv"',
-    },
-  })
+  return csvResponse(CSV_HEADER + rows)
 }
