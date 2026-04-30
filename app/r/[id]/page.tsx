@@ -165,9 +165,9 @@ export default async function PublicReportPage({
             textAlign: 'center',
           }}
         >
-          <h1 style={{ marginTop: 0 }}>Report not found</h1>
+          <h1 style={{ marginTop: 0 }}>Rapor bulunamadı</h1>
           <p style={{ opacity: 0.75, marginBottom: 0 }}>
-            Geçerli bir public report bulunamadı.
+            Geçerli bir herkese açık rapor bulunamadı.
           </p>
         </div>
       </div>
@@ -198,16 +198,16 @@ export default async function PublicReportPage({
 
   const status = alarm
     ? 'counterfeit'
-    : summary?.is_suspicious
-    ? 'suspicious'
-    : 'clean'
+     : summary?.is_suspicious
+     ? 'suspicious'
+   : 'clean'
 
   const statusTitle =
     status === 'counterfeit'
-      ? '⚠ HIGH RISK – Counterfeit Detected'
+      ? '🚨 YÜKSEK RİSK – SAHTE ÜRÜN ŞÜPHESİ'
       : status === 'suspicious'
-      ? '⚠ Suspicious Activity Detected'
-      : '✅ VERIFIED AUTHENTIC PRODUCT'
+      ? '⚠ ŞÜPHELİ AKTİVİTE TESPİT EDİLDİ'
+      : '✅ DOĞRULANMIŞ ORİJİNAL ÜRÜN'
 
   const statusText =
     status === 'counterfeit'
@@ -272,7 +272,7 @@ export default async function PublicReportPage({
                   DPPForge
                 </h1>
                 <div style={{ marginTop: 6, opacity: 0.72, fontSize: 14 }}>
-                  Public Brand Protection Report
+                  Marka Koruma Raporu
                 </div>
               </div>
             </div>
@@ -301,7 +301,7 @@ export default async function PublicReportPage({
                     letterSpacing: 0.3,
                   }}
                 >
-                  Shareable Report
+                  Paylaşılabilir Rapor
                 </span>
                 <CopyLinkButton />
               </div>
@@ -324,13 +324,13 @@ export default async function PublicReportPage({
           >
             <div style={{ flex: 1, minWidth: 280 }}>
               <h2 style={{ margin: 0, fontSize: 28 }}>
-                {product?.name_tr ?? 'Unknown Product'}
+                {product?.name_tr ?? 'Bilinmeyen Ürün'}
               </h2>
               <div style={{ marginTop: 10, opacity: 0.8 }}>
                 SKU: {product?.sku ?? '-'}
               </div>
               <div style={{ marginTop: 4, opacity: 0.8 }}>
-                Slug: {page.slug ?? '-'}
+                Sayfa: {page.slug ?? '-'}
               </div>
 
               {status === 'counterfeit' && (
@@ -350,7 +350,7 @@ export default async function PublicReportPage({
                       color: '#fecaca',
                     }}
                   >
-                    ⚠️ Suspicious Behavior Identified
+                    ⚠️ Şüpheli Davranış Tespit Edildi
                   </div>
                   <p
                     style={{
@@ -361,8 +361,8 @@ export default async function PublicReportPage({
                       color: 'rgba(255,255,255,0.75)',
                     }}
                   >
-                    This product shows behavioral patterns consistent with
-                    counterfeit distribution.
+                    Bu ürün, sahte ürün dağıtımıyla uyumlu davranış sinyalleri göstermektedir.
+                    
                   </p>
                 </div>
               )}
@@ -379,7 +379,7 @@ export default async function PublicReportPage({
             >
               {status === 'counterfeit' && (
                 <>
-                  <span style={pillStyle('risk')}>🚨 Counterfeit</span>
+                  <span style={pillStyle('risk')}>🚨 Sahte Ürün Riski</span>
                   {alarm?.risk_level ? (
                     <span style={pillStyle('risk')}>
                       {String(alarm.risk_level).toUpperCase()}
@@ -394,11 +394,11 @@ export default async function PublicReportPage({
               )}
 
               {status === 'suspicious' && (
-                <span style={pillStyle('warn')}>⚠ Suspicious</span>
+                <span style={pillStyle('warn')}>⚠ Şüpheli</span>
               )}
 
               {status === 'clean' && (
-                <span style={pillStyle('success')}>✅ Clean</span>
+                <span style={pillStyle('success')}>✅ Güvenli</span>
               )}
             </div>
           </div>
@@ -435,7 +435,7 @@ export default async function PublicReportPage({
 
           <div style={{ marginTop: 24 }}>
             <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 12 }}>
-              Scan Metrics
+              Okutma Metrikleri
             </div>
 
             <div
@@ -445,11 +445,11 @@ export default async function PublicReportPage({
                 gap: 12,
               }}
             >
-              <Metric label="Total Scans" value={summary?.scans_total ?? 0} />
-              <Metric label="24h Scans" value={summary?.scans_24h ?? 0} />
-              <Metric label="Unique IPs" value={summary?.unique_ips_24h ?? 0} />
+              <Metric label="Toplam Okutma" value={summary?.scans_total ?? 0} />
+              <Metric label="Son 24 Saat" value={summary?.scans_24h ?? 0} />
+              <Metric label="Benzersiz IP" value={summary?.unique_ips_24h ?? 0} />
               <Metric
-                label="Countries"
+                label="Ülke Sayısı"
                 value={summary?.unique_countries_24h ?? 0}
               />
             </div>
@@ -470,7 +470,7 @@ export default async function PublicReportPage({
                 padding: 16,
               }}
             >
-              <div style={{ fontWeight: 900, fontSize: 16 }}>Overview</div>
+              <div style={{ fontWeight: 900, fontSize: 16 }}>Genel Bilgiler</div>
 
               <div
                 style={{
@@ -481,11 +481,11 @@ export default async function PublicReportPage({
                   opacity: 0.9,
                 }}
               >
-                <div>Published: {page.published_at ? 'Yes' : 'No'}</div>
-                <div>Review State: {page.review_state ?? '-'}</div>
-                <div>Last Scan At: {summary?.last_scan_at ?? '-'}</div>
+                <div>Yayınlandı: {page.published_at ? 'Evet' : 'Hayır'}</div>
+                <div>İnceleme Durumu: {page.review_state ?? '-'}</div>
+                <div>Son Okutma: {summary?.last_scan_at ?? '-'}</div>
                 <div>
-                  Suspicious Flag: {summary?.is_suspicious ? 'Yes' : 'No'}
+                  Şüpheli Durum: {summary?.is_suspicious ? 'Evet' : 'Hayır'}
                 </div>
               </div>
             </div>
@@ -501,7 +501,7 @@ export default async function PublicReportPage({
                 padding: 16,
               }}
             >
-              <div style={{ fontWeight: 900, fontSize: 16 }}>Assessment</div>
+              <div style={{ fontWeight: 900, fontSize: 16 }}>Değerlendirme</div>
 
               <div
                 style={{
@@ -513,23 +513,23 @@ export default async function PublicReportPage({
                 }}
               >
                 <div>
-                  Current Status:{' '}
+                  Mevcut Durum:{' '}
                   {status === 'counterfeit'
-                    ? 'Counterfeit Risk'
+                    ? 'Sahte Ürün Riski'
                     : status === 'suspicious'
-                    ? 'Suspicious'
-                    : 'Clean'}
+                    ? 'Şüpheli'
+                    : 'Güvenli'}
                 </div>
 
                 <div>
-                  Risk Score:{' '}
+                  Risk Skoru:{' '}
                   {typeof alarm?.risk_score === 'number'
                     ? alarm.risk_score
                     : '-'}
                 </div>
 
-                <div>Risk Level: {alarm?.risk_level ?? '-'}</div>
-                <div>Open Alarm: {alarm ? 'Yes' : 'No'}</div>
+                <div>Risk Seviyesi: {alarm?.risk_level ?? '-'}</div>
+                <div>Açık Alarm: {alarm ? 'Evet' : 'Hayır'}</div>
               </div>
             </div>
           </div>
@@ -544,7 +544,7 @@ export default async function PublicReportPage({
               }}
             >
               <div style={{ fontWeight: 900, fontSize: 16 }}>
-                Counterfeit Reasons
+                Sahtecilik Sinyalleri
               </div>
 
               <div
@@ -569,7 +569,7 @@ export default async function PublicReportPage({
                     </span>
                   ))
                 ) : (
-                  <span style={{ opacity: 0.8 }}>No reasons available</span>
+                  <span style={{ opacity: 0.8 }}>Tespit nedeni bulunamadı</span>
                 )}
               </div>
             </div>
@@ -591,7 +591,7 @@ export default async function PublicReportPage({
                 fontWeight: 900,
               }}
             >
-              Want to protect your own products?
+              Ürünlerinizi korumak ister misiniz?
             </h3>
 
             <p
@@ -603,8 +603,12 @@ export default async function PublicReportPage({
                 color: 'rgba(255,255,255,0.65)',
               }}
             >
-              Start tracking and detecting counterfeit risks with DPPForge.
+              DPPForge ile sahte ürünleri tespit etmeye ve markanızı korumaya başlayın.
             </p>
+
+            <div style={{ marginTop: 6, fontSize: 13, opacity: 0.7 }}>
+              Ücretsiz plan ile hemen başlayın • Kredi kartı gerekmez
+            </div>
 
             <div
               style={{
@@ -616,7 +620,7 @@ export default async function PublicReportPage({
               }}
             >
               <a
-                href="mailto:hello@dppforge.com?subject=DPPForge Demo Request"
+                href="mailto:hello@dppforge.com?subject=DPPForge Demo Talebi"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -631,7 +635,7 @@ export default async function PublicReportPage({
                   textDecoration: 'none',
                 }}
               >
-                Request Demo
+                Demo Talep Et
               </a>
 
               <a
@@ -651,7 +655,7 @@ export default async function PublicReportPage({
                   background: 'rgba(255,255,255,0.03)',
                 }}
               >
-                Back to Website
+                Ana Sayfaya Dön
               </a>
             </div>
           </div>
