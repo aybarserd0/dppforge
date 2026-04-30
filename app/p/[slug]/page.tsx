@@ -909,9 +909,9 @@ export default async function PublicDppPage({
                 </div>
               )}
 
-              <h1 style={{ margin: '8px 0 0', fontSize: 34 }}>{title}</h1>
-
               <TrustBadge status={trustStatus} />
+
+              <h1 style={{ margin: '12px 0 0', fontSize: 34 }}>{title}</h1>
 
               <div style={{ fontSize: 13, opacity: 0.72, marginTop: 8 }}>
                 Bu sayfa ürünün doğrulama, izlenebilirlik ve güven değerlendirmesi için
