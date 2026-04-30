@@ -20,10 +20,7 @@ function SignupForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const next = useMemo(
-    () => safeNext(searchParams.get('next')),
-    [searchParams]
-  )
+  const next = useMemo(() => safeNext(searchParams.get('next')), [searchParams])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -111,54 +108,56 @@ function SignupForm() {
             </h1>
 
             <p className="mt-5 max-w-xl text-base leading-8 text-white/62">
-              QR kod ile ürünlerinizi doğrulayın, sahtecilik girişimlerini anında tespit edin ve müşterilerinizin ürünlerinizi nereden okuttuğunu görün.
-              oluşturun ve okutma hareketlerini tek panelden takip edin.
+              QR kod ile ürünlerinizi doğrulayın, sahtecilik girişimlerini anında
+              tespit edin ve müşterilerinizin ürünlerinizi nereden okuttuğunu tek
+              panelden görün.
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-sm text-white/80">
+                <div className="mb-2 font-semibold text-cyan-300">Free</div>
+                <ul className="space-y-1">
+                  <li>• 1 ürün</li>
+                  <li>• 50 okutma</li>
+                  <li>• QR doğrulama sayfası</li>
+                </ul>
+                <div className="mt-3 text-xs text-white/50">
+                  Kredi kartı gerekmez
+                </div>
+              </div>
 
-  {/* FREE */}
-  <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-sm text-white/80">
-    <div className="mb-2 font-semibold text-cyan-300">Free</div>
-    <ul className="space-y-1">
-      <li>• 1 ürün</li>
-      <li>• 50 okutma</li>
-      <li>• QR doğrulama sayfası</li>
-    </ul>
-    <div className="mt-3 text-xs text-white/50">
-      Kredi kartı gerekmez
-    </div>
-  </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/80">
+                <div className="mb-2 font-semibold text-white">Pro</div>
+                <ul className="space-y-1">
+                  <li>• 25 ürün</li>
+                  <li>• 10.000 okutma</li>
+                  <li>• Email alert</li>
+                  <li>• Analitik panel</li>
+                </ul>
+                <div className="mt-3 font-semibold text-cyan-300">
+                  ₺999 / ay
+                </div>
+              </div>
 
-  {/* PRO */}
-  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/80">
-    <div className="mb-2 font-semibold text-white">Pro</div>
-    <ul className="space-y-1">
-      <li>• 25 ürün</li>
-      <li>• 10.000 okutma</li>
-      <li>• Email alert</li>
-      <li>• Analitik panel</li>
-    </ul>
-    <div className="mt-3 font-semibold text-cyan-300">
-      ₺999 / ay
-    </div>
-  </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/80">
+                <div className="mb-2 font-semibold text-white">Business</div>
+                <ul className="space-y-1">
+                  <li>• 100 ürün</li>
+                  <li>• 50.000 okutma</li>
+                  <li>• CSV export</li>
+                  <li>• Gelişmiş rapor</li>
+                </ul>
+                <div className="mt-3 font-semibold text-cyan-300">
+                  ₺2999 / ay
+                </div>
+              </div>
+            </div>
 
-  {/* BUSINESS */}
-  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/80">
-    <div className="mb-2 font-semibold text-white">Business</div>
-    <ul className="space-y-1">
-      <li>• 100 ürün</li>
-      <li>• 50.000 okutma</li>
-      <li>• CSV export</li>
-      <li>• Gelişmiş rapor</li>
-    </ul>
-    <div className="mt-3 font-semibold text-cyan-300">
-      ₺2999 / ay
-    </div>
-  </div>
-
-</div>
+            <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/65">
+              Ücretsiz başlayın. Ürününüzü ekleyin, QR sayfanızı oluşturun ve
+              okutma verilerini canlı takip edin.
+            </div>
+          </div>
 
           <form
             onSubmit={handleSignup}
