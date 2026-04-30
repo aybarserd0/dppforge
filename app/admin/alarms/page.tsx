@@ -83,10 +83,10 @@ function buttonStyle() {
 function translateRiskLevel(level?: string | null) {
   const value = String(level ?? '').trim().toLowerCase()
 
+  if (value === 'critical') return 'Kritik'
   if (value === 'high') return 'Yüksek'
   if (value === 'medium') return 'Orta'
   if (value === 'low') return 'Düşük'
-  if (value === 'critical') return 'Kritik'
 
   return level ?? '—'
 }
@@ -105,7 +105,7 @@ function translateReason(reason: string) {
 function levelBadge(level?: string | null) {
   const value = String(level ?? '').trim().toLowerCase()
 
-  if (value === 'high') {
+  if (value === 'critical' || value === 'high') {
     return pillStyle(
       'rgba(239,68,68,0.14)',
       'rgba(239,68,68,0.35)',
@@ -126,14 +126,6 @@ function levelBadge(level?: string | null) {
       'rgba(59,130,246,0.14)',
       'rgba(59,130,246,0.35)',
       '#bfdbfe'
-    )
-  }
-
-  if (value === 'critical') {
-    return pillStyle(
-      'rgba(239,68,68,0.14)',
-      'rgba(239,68,68,0.35)',
-      '#fecaca'
     )
   }
 
@@ -167,123 +159,83 @@ function fmt(dt?: string | null) {
   return date.toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' })
 }
 
+function ErrorBox({
+  title,
+  error,
+}: {
+  title: string
+  error: unknown
+}) {
+  return (
+    <div
+      style={{
+        padding: 40,
+        background: '#0b0f17',
+        minHeight: '100vh',
+        color: '#e6e6e6',
+        fontFamily: 'system-ui',
+      }}
+    >
+      <h1>{title}</h1>
+      <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, opacity: 0.8 }}>
+        {JSON.stringify(error, null, 2)}
+      </pre>
+    </div>
+  )
+}
+
 export default async function AdminAlarmsPage() {
-  await requireAdmin()
+  const user = await requireAdmin()
   const supabase = getSupabaseAdmin()
 
-  // 1. USER AL
-const user = await requireAdmin()
+  const { data: userProductsRaw, error: userProductsErr } = await supabase
+    .from('products')
+    .select('id, name_tr, sku')
+    .eq('user_id', user.id)
 
-// 2. USER'IN ÜRÜNLERİNİ BUL
-const { data: products } = await supabase
-  .from('products')
-  .select('id')
-  .eq('user_id', user.id)
-
-// 3. PRODUCT ID'LERİ
-const productIds = (products ?? []).map(p => p.id)
-
-// 4. BU ÜRÜNLERE AİT PAGE'LERİ BUL
-const { data: pages } = await supabase
-  .from('public_pages')
-  .select('id')
-  .in('product_id', productIds)
-
-// 5. PAGE ID'LERİ
-const pageIds = (pages ?? []).map(p => p.id)
-
-// 6. SADECE BU PAGE'LERE AİT ALARMLARI ÇEK
-const { data: alarmsRaw, error: alarmsErr } = await supabase
-  .from('dpp_alarms')
-  .select('id, page_id, risk_score, risk_level, reasons, created_at, resolved')
-  .in('page_id', pageIds)
-  .order('created_at', { ascending: false })
-  .limit(100)
-
-  if (alarmsErr) {
-    return (
-      <div
-        style={{
-          padding: 40,
-          background: '#0b0f17',
-          minHeight: '100vh',
-          color: '#e6e6e6',
-          fontFamily: 'system-ui',
-        }}
-      >
-        <h1>Alarm verisi hatası</h1>
-        <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, opacity: 0.8 }}>
-          {JSON.stringify(alarmsErr, null, 2)}
-        </pre>
-      </div>
-    )
+  if (userProductsErr) {
+    return <ErrorBox title="Ürün verisi hatası" error={userProductsErr} />
   }
 
-  const alarms = (alarmsRaw ?? []) as AlarmRow[]
-  const pageIds = Array.from(new Set(alarms.map((a) => a.page_id).filter(Boolean)))
+  const userProducts = (userProductsRaw ?? []) as ProductRow[]
+  const userProductIds = userProducts.map((p) => p.id)
 
+  let alarms: AlarmRow[] = []
   let pageMap = new Map<string, PageRow>()
-  let productMap = new Map<string, ProductRow>()
+  let productMap = new Map<string, ProductRow>(
+    userProducts.map((p) => [p.id, p])
+  )
 
-  if (pageIds.length > 0) {
-    const { data: pagesRaw, error: pagesErr } = await supabase
+  if (userProductIds.length > 0) {
+    const { data: userPagesRaw, error: userPagesErr } = await supabase
       .from('public_pages')
       .select('id, slug, product_id')
-      .in('id', pageIds)
+      .in('product_id', userProductIds)
 
-    if (pagesErr) {
-      return (
-        <div
-          style={{
-            padding: 40,
-            background: '#0b0f17',
-            minHeight: '100vh',
-            color: '#e6e6e6',
-            fontFamily: 'system-ui',
-          }}
-        >
-          <h1>Sayfa verisi hatası</h1>
-          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, opacity: 0.8 }}>
-            {JSON.stringify(pagesErr, null, 2)}
-          </pre>
-        </div>
-      )
+    if (userPagesErr) {
+      return <ErrorBox title="Sayfa verisi hatası" error={userPagesErr} />
     }
 
-    const pages = (pagesRaw ?? []) as PageRow[]
-    pageMap = new Map(pages.map((p) => [p.id, p]))
+    const userPages = (userPagesRaw ?? []) as PageRow[]
+    pageMap = new Map(userPages.map((p) => [p.id, p]))
 
-    const productIds = Array.from(
-      new Set(pages.map((p) => p.product_id).filter(Boolean) as string[])
-    )
+    const userPageIds = userPages.map((p) => p.id)
 
-    if (productIds.length > 0) {
-      const { data: productsRaw, error: productsErr } = await supabase
-        .from('products')
-        .select('id, name_tr, sku')
-        .in('id', productIds)
-
-      if (productsErr) {
-        return (
-          <div
-            style={{
-              padding: 40,
-              background: '#0b0f17',
-              minHeight: '100vh',
-              color: '#e6e6e6',
-              fontFamily: 'system-ui',
-            }}
-          >
-            <h1>Ürün verisi hatası</h1>
-            <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, opacity: 0.8 }}>
-              {JSON.stringify(productsErr, null, 2)}
-            </pre>
-          </div>
+    if (userPageIds.length > 0) {
+      const { data: alarmsRaw, error: alarmsErr } = await supabase
+        .from('dpp_alarms')
+        .select(
+          'id, page_id, risk_score, risk_level, reasons, created_at, resolved'
         )
+        .in('page_id', userPageIds)
+        .order('created_at', { ascending: false })
+        .limit(100)
+
+      if (alarmsErr) {
+        return <ErrorBox title="Alarm verisi hatası" error={alarmsErr} />
       }
 
-      const products = (productsRaw ?? []) as ProductRow[]
-      productMap = new Map(products.map((p) => [p.id, p]))
+      alarms = (alarmsRaw ?? []) as AlarmRow[]
     }
   }
 
@@ -313,22 +265,13 @@ const { data: alarmsRaw, error: alarmsErr } = await supabase
         <div>
           <h1 style={{ margin: 0 }}>⚠ Alarm Kayıtları</h1>
           <p style={{ opacity: 0.7, marginTop: 8 }}>
-            Şüpheli tarama sonucu oluşan alarm kayıtları
+            Sadece bu hesaba ait ürünlerde oluşan alarm kayıtları
           </p>
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            gap: 10,
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
-          <Link href="/admin" style={buttonStyle()}>
-            ← Admin’e dön
-          </Link>
-        </div>
+        <Link href="/admin" style={buttonStyle()}>
+          ← Admin’e dön
+        </Link>
       </div>
 
       <div
@@ -381,7 +324,8 @@ const { data: alarmsRaw, error: alarmsErr } = await supabase
         >
           <div style={{ fontWeight: 800, marginBottom: 6 }}>Henüz alarm yok</div>
           <div style={{ opacity: 0.75, fontSize: 13 }}>
-            Şüpheli tarama oluştuğunda kayıtlar burada görünecek.
+            Bu hesaba ait ürünlerde şüpheli tarama oluştuğunda kayıtlar burada
+            görünecek.
           </div>
         </div>
       ) : (
@@ -498,7 +442,13 @@ const { data: alarmsRaw, error: alarmsErr } = await supabase
                     </div>
 
                     <div style={{ marginTop: 12 }}>
-                      <div style={{ fontSize: 13, opacity: 0.75, marginBottom: 8 }}>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          opacity: 0.75,
+                          marginBottom: 8,
+                        }}
+                      >
                         Nedenler
                       </div>
 
