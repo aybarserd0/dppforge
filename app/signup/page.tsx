@@ -114,12 +114,13 @@ function SignupForm() {
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-sm text-white/80">
-                <div className="mb-2 font-semibold text-cyan-300">Free</div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/80">
+                <div className="mb-2 font-semibold text-white">Free</div>
+                <div className="mb-3 text-2xl font-bold text-white">0₺</div>
                 <ul className="space-y-1">
-                  <li>• 1 ürün</li>
-                  <li>• 50 okutma</li>
-                  <li>• QR doğrulama sayfası</li>
+                  <li>✓ 1 ürün</li>
+                  <li>✓ 50 okutma</li>
+                  <li>✓ Temel doğrulama</li>
                 </ul>
                 <div className="mt-3 text-xs text-white/50">
                   Kredi kartı gerekmez
@@ -127,35 +128,48 @@ function SignupForm() {
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/80">
-                <div className="mb-2 font-semibold text-white">Pro</div>
-                <ul className="space-y-1">
-                  <li>• 25 ürün</li>
-                  <li>• 10.000 okutma</li>
-                  <li>• Email alert</li>
-                  <li>• Analitik panel</li>
-                </ul>
-                <div className="mt-3 font-semibold text-cyan-300">
-                  ₺999 / ay
+                <div className="mb-2 font-semibold text-white">Starter</div>
+                <div className="mb-3 text-2xl font-bold text-white">
+                  1.990₺{' '}
+                  <span className="text-sm font-normal text-white/60">
+                    / ay
+                  </span>
                 </div>
+                <ul className="space-y-1">
+                  <li>✓ 5 ürün</li>
+                  <li>✓ 1.000 okutma</li>
+                  <li>✓ QR doğrulama</li>
+                  <li>✓ Temel analiz</li>
+                </ul>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/80">
-                <div className="mb-2 font-semibold text-white">Business</div>
-                <ul className="space-y-1">
-                  <li>• 100 ürün</li>
-                  <li>• 50.000 okutma</li>
-                  <li>• CSV export</li>
-                  <li>• Gelişmiş rapor</li>
-                </ul>
-                <div className="mt-3 font-semibold text-cyan-300">
-                  ₺2999 / ay
+              <div className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 p-5 text-sm text-white/80">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="font-semibold text-cyan-300">Pro</span>
+                  <span className="rounded-full border border-cyan-300/30 px-2 py-1 text-[10px] font-semibold text-cyan-300">
+                    En Popüler
+                  </span>
                 </div>
+                <div className="mb-3 text-2xl font-bold text-white">
+                  4.990₺{' '}
+                  <span className="text-sm font-normal text-white/60">
+                    / ay
+                  </span>
+                </div>
+                <ul className="space-y-1">
+                  <li>✓ 25 ürün</li>
+                  <li>✓ 10.000 okutma</li>
+                  <li>✓ Sahtecilik tespiti</li>
+                  <li>✓ Email uyarıları</li>
+                  <li>✓ Gelişmiş analiz</li>
+                </ul>
               </div>
             </div>
 
             <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/65">
-              Ücretsiz başlayın. Ürününüzü ekleyin, QR sayfanızı oluşturun ve
-              okutma verilerini canlı takip edin.
+              Ücretsiz başlayın. Markanız büyüdükçe Starter, Pro veya Business
+              plana geçerek daha fazla ürün, okutma ve gelişmiş sahtecilik
+              takibi kullanın.
             </div>
           </div>
 
