@@ -171,11 +171,34 @@ export default async function AdminAlarmsPage() {
   await requireAdmin()
   const supabase = getSupabaseAdmin()
 
-  const { data: alarmsRaw, error: alarmsErr } = await supabase
-    .from('dpp_alarms')
-    .select('id, page_id, risk_score, risk_level, reasons, created_at, resolved')
-    .order('created_at', { ascending: false })
-    .limit(100)
+  // 1. USER AL
+const user = await requireAdmin()
+
+// 2. USER'IN ÜRÜNLERİNİ BUL
+const { data: products } = await supabase
+  .from('products')
+  .select('id')
+  .eq('user_id', user.id)
+
+// 3. PRODUCT ID'LERİ
+const productIds = (products ?? []).map(p => p.id)
+
+// 4. BU ÜRÜNLERE AİT PAGE'LERİ BUL
+const { data: pages } = await supabase
+  .from('public_pages')
+  .select('id')
+  .in('product_id', productIds)
+
+// 5. PAGE ID'LERİ
+const pageIds = (pages ?? []).map(p => p.id)
+
+// 6. SADECE BU PAGE'LERE AİT ALARMLARI ÇEK
+const { data: alarmsRaw, error: alarmsErr } = await supabase
+  .from('dpp_alarms')
+  .select('id, page_id, risk_score, risk_level, reasons, created_at, resolved')
+  .in('page_id', pageIds)
+  .order('created_at', { ascending: false })
+  .limit(100)
 
   if (alarmsErr) {
     return (
